@@ -5,6 +5,7 @@ char buff[24];
 int pid;
 
 int add(int par1, int par2) {return par1+par2;}
+int addASM(int par1, int par2);
 
 int __attribute__ ((__section__(".text.main")))
   main(void)
