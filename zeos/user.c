@@ -15,7 +15,15 @@ int __attribute__ ((__section__(".text.main")))
 
     int result = add(66,1638);
 
-	char *msg = "MI BOMBO CLAT\n";
-	write(1, msg, 14);
-  while(1) { }
+	char *msg = "\nMI BOMBO CLAT\n\n";
+	write(1, msg, 16);
+
+  while(1) {
+		int t = gettime();
+		/*
+		if (t >= 500) {
+			write(1, msg, 16);
+		}
+		*/
+	}
 }

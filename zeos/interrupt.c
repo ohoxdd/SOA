@@ -12,6 +12,10 @@
 // avisamos de que existen los handlers
 extern void keyboard_handler();
 extern void system_call_handler();
+extern void clock_handler();
+
+// ticks para el reloj
+int zeos_ticks = 0;
 
 Gate idt[IDT_ENTRIES];
 Register    idtR;
@@ -91,6 +95,7 @@ void setIdt()
 	//al interrupt de teclado (el numero 33)
 	setInterruptHandler(33, keyboard_handler, 0);
 	setTrapHandler(0x80, system_call_handler, 3);
+	setInterruptHandler(32, clock_handler, 0);
 
   set_idt_reg(&idtR);
 }
@@ -115,5 +120,10 @@ void keyboard_routine() {
 			printc_xy(0,0,'C');
 		}
 	}
+}
+
+void clock_routine(void) {
+	zeos_show_clock();
+	zeos_ticks++;
 }
 

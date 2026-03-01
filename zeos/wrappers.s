@@ -34,3 +34,21 @@ write_end:
  popl %ebx
  popl %ebp
  ret
+
+.globl gettime; .type gettime, @function; .align 0; gettime:
+ pushl %ebp
+ movl %esp, %ebp
+
+ movl $10, %eax
+ int $0x80
+
+ cmpl $0, %eax
+ jge gettime_end
+
+ negl %eax
+ movl %eax, errno
+ movl $-1, %eax
+
+gettime_end:
+ popl %ebp
+ ret
