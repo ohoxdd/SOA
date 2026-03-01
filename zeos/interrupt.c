@@ -9,8 +9,9 @@
 
 #include <zeos_interrupt.h>
 
-// avisamos de que existe el handler
+// avisamos de que existen los handlers
 extern void keyboard_handler();
+extern void system_call_handler();
 
 Gate idt[IDT_ENTRIES];
 Register    idtR;
@@ -89,6 +90,7 @@ void setIdt()
 	//registramos en la idt el handler de teclado asociandolo
 	//al interrupt de teclado (el numero 33)
 	setInterruptHandler(33, keyboard_handler, 0);
+	setTrapHandler(0x80, system_call_handler, 3);
 
   set_idt_reg(&idtR);
 }

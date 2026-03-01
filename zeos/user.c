@@ -14,5 +14,8 @@ int __attribute__ ((__section__(".text.main")))
      /* __asm__ __volatile__ ("mov %0, %%cr3"::"r" (0) ); */
 
     int result = add(66,1638);
+
+	char *msg = "MI BOMBO CLAT\n";
+	write(1, msg, 14);
   while(1) { }
 }

@@ -8,6 +8,10 @@
 
 void itoa(int a, char *b);
 
+extern int errno;
+int write(int fd, char *buffer, int size);
+void perror(void);
+
 int strlen(char *a);
 
 #endif  /* __LIBC_H__ */

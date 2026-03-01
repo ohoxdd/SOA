@@ -6,7 +6,12 @@
 
 #include <types.h>
 
-int errno;
+int errno = 0;
+
+void perror(void) {
+	char error_msg[256];
+	write(1, "\nError SYSCALL\n", 32);
+}
 
 void itoa(int a, char *b)
 {

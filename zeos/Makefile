@@ -41,6 +41,7 @@ LIBZEOS = -L . -l zeos
 USROBJ = \
 	libc.o \
 	suma.o \
+	wrappers.o \
 	# libjp.a \
 
 all:zeos.bin
@@ -69,6 +70,12 @@ suma.o: suma.s
 	$(AS) -o $@ $<
 
 suma.s: suma.S $(INCLUDEDIR)/asm.h
+	$(CPP) $(ASMFLAGS) -o $@ $<
+
+wrappers.o: wrappers.s
+	$(AS) -o $@ $<
+
+wrappers.s: wrappers.S $(INCLUDEDIR)/asm.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
 sys_call_table.s: sys_call_table.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
@@ -102,7 +109,6 @@ system: system.o system.lds $(SYSOBJ)
 
 user: user.o user.lds $(USROBJ) 
 	$(LD) $(LDFLAGS) -T user.lds -o $@ $< $(USROBJ)
-
 
 clean:
 	rm -f *.o *.s bochsout.txt parport.out system.out system bootsect zeos.bin user user.out *~ build 
