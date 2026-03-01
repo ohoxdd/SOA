@@ -9,6 +9,9 @@
 
 #include <zeos_interrupt.h>
 
+// avisamos de que existe el handler
+extern void keyboard_handler();
+
 Gate idt[IDT_ENTRIES];
 Register    idtR;
 
@@ -83,7 +86,32 @@ void setIdt()
   set_handlers();
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
+	//registramos en la idt el handler de teclado asociandolo
+	//al interrupt de teclado (el numero 33)
+	setInterruptHandler(33, keyboard_handler, 0);
 
   set_idt_reg(&idtR);
+}
+
+void keyboard_routine() {
+	unsigned char c;
+	unsigned char scan_code;
+
+	c = inb(0x60);
+	
+	// Solo hacemos algo cuando baja la letra, es decir
+	// cuando el bit 7 de inb es 0 (Make)
+	if ((c & 0x80) == 0)  {
+		// 7 LSB = scan code
+		scan_code = c & 0x7F;
+		// ver q tecla es en ascii
+		char ascii_char = char_map[scan_code];
+		//imprimimos
+		if (ascii_char != '\0') {
+			printc_xy(0,0,ascii_char);
+		} else {
+			printc_xy(0,0,'C');
+		}
+	}
 }
 
