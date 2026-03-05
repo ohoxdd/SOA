@@ -15,8 +15,8 @@ int __attribute__ ((__section__(".text.main")))
 
     //int result = add(66,1638);
 
-	char *msg = "\nMI BOMBO CLAT\n\n";
-	write(1, msg, 16);
+	char *msg = "\nEsto es un mensaje.";
+	write(1, msg, 20);
 
   while(1) {
 		/*

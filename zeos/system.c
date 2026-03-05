@@ -41,7 +41,7 @@ int __attribute__((__section__(".text.main")))
   /*** DO *NOT* ADD ANY CODE IN THIS ROUTINE BEFORE THIS POINT ***/
 
   printk("Kernel Loaded!    ");
-  printk("ULTRAKILL mode... ON!!!1!!!!");
+  printk("Esto es otro mensaje.");
 
 
   /* Initialize hardware data */
