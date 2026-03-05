@@ -31,7 +31,7 @@
 00000000000i[      ]   SB16 support: no
 00000000000i[      ]   USB support: no
 00000000000i[      ]   VGA extension support: vbe
-00000000000i[MEM0  ] allocated memory at 0x7f307bbdd010. after alignment, vector=0x7f307bbde000
+00000000000i[MEM0  ] allocated memory at 0x7f5c781dd010. after alignment, vector=0x7f5c781de000
 00000000000i[MEM0  ] 16.00MB
 00000000000i[MEM0  ] mem block size = 0x00100000, blocks=16
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('/usr/local/share/bochs/BIOS-bochs-latest')
@@ -41,7 +41,7 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
-00000000000i[CMOS  ] Setting initial clock to: Thu Mar  5 14:54:08 2026 (time0=1772718848)
+00000000000i[CMOS  ] Setting initial clock to: Thu Mar  5 15:45:36 2026 (time0=1772721936)
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -128,52 +128,131 @@
 00000000000i[PLUGIN] reset of 'parallel' plugin device by virtual method
 00000000000i[PLUGIN] reset of 'serial' plugin device by virtual method
 00000000000i[XGUI  ] Mouse capture off
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[GDBST ] addr 000000000000fff0 len 1
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[GDBST ] addr 000000000000fff0 len 1
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[GDBST ] addr 000000000000ffc0 len 40
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[GDBST ] addr 000000000000fff0 len 8
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[GDBST ] addr 000000000000fff0 len 7
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[XGUI  ] Mouse capture off
-00000000000i[XGUI  ] Mouse capture off
-00000000000p[GDBST ] >>PANIC<< Debugger asked us to quit
-00000000000i[CPU0  ] CPU is in real mode (active)
-00000000000i[CPU0  ] CS.mode = 16 bit
-00000000000i[CPU0  ] SS.mode = 16 bit
-00000000000i[CPU0  ] EFER   = 0x00000000
-00000000000i[CPU0  ] | EAX=00000000  EBX=00000000  ECX=00000000  EDX=00000000
-00000000000i[CPU0  ] | ESP=00000000  EBP=00000000  ESI=00000000  EDI=00000000
-00000000000i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df if tf sf zf af pf cf
-00000000000i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
-00000000000i[CPU0  ] |  CS:f000( 1e00| 0|  0) ffff0000 0000ffff 0 0
-00000000000i[CPU0  ] |  DS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
-00000000000i[CPU0  ] |  SS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
-00000000000i[CPU0  ] |  ES:0000( 0000| 0|  0) 00000000 0000ffff 0 0
-00000000000i[CPU0  ] |  FS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
-00000000000i[CPU0  ] |  GS:0000( 0000| 0|  0) 00000000 0000ffff 0 0
-00000000000i[CPU0  ] | EIP=0000fff0 (0000fff0)
-00000000000i[CPU0  ] | CR0=0x60000010 CR2=0x00000000
-00000000000i[CPU0  ] | CR3=0x00000000 CR4=0x00000000
-00000000000i[CPU0  ] 0x0000fff0>> jmpf 0xf000:e05b : EA5BE000F0
-00000000000i[CMOS  ] Last time is 1772718848 (Thu Mar  5 14:54:08 2026)
-00000000000i[XGUI  ] Exit
-00000000000i[      ] restoring default signal behavior
-00000000000i[SIM   ] quit_sim called with exit code 1
+00000004661i[BIOS  ] $Revision: 12412 $ $Date: 2014-07-10 09:28:59 +0200 (Do, 10. Jul 2014) $
+00000593070i[KBD   ] reset-disable command received
+00000595801i[BIOS  ] Starting rombios32
+00000596239i[BIOS  ] Shutdown flag 0
+00000596823i[BIOS  ] ram_size=0x01000000
+00000597244i[BIOS  ] ram_end=16MB
+00000637754i[BIOS  ] Found 1 cpu(s)
+00000651958i[BIOS  ] bios_table_addr: 0x000fa498 end=0x000fcc00
+00000979753i[PCI   ] i440FX PMC write to PAM register 59 (TLB Flush)
+00001307682i[P2ISA ] PCI IRQ routing: PIRQA# set to 0x0b
+00001307701i[P2ISA ] PCI IRQ routing: PIRQB# set to 0x09
+00001307720i[P2ISA ] PCI IRQ routing: PIRQC# set to 0x0b
+00001307739i[P2ISA ] PCI IRQ routing: PIRQD# set to 0x09
+00001307749i[P2ISA ] write: ELCR2 = 0x0a
+00001308519i[BIOS  ] PIIX3/PIIX4 init: elcr=00 0a
+00001316200i[BIOS  ] PCI: bus=0 devfn=0x00: vendor_id=0x8086 device_id=0x1237 class=0x0600
+00001318479i[BIOS  ] PCI: bus=0 devfn=0x08: vendor_id=0x8086 device_id=0x7000 class=0x0601
+00001320597i[BIOS  ] PCI: bus=0 devfn=0x09: vendor_id=0x8086 device_id=0x7010 class=0x0101
+00001320822i[PIDE  ] new BM-DMA address: 0xc000
+00001321438i[BIOS  ] region 4: 0x0000c000
+00001323472i[BIOS  ] PCI: bus=0 devfn=0x0b: vendor_id=0x8086 device_id=0x7113 class=0x0680
+00001323704i[ACPI  ] new irq line = 11
+00001323716i[ACPI  ] new irq line = 9
+00001323741i[ACPI  ] new PM base address: 0xb000
+00001323755i[ACPI  ] new SM base address: 0xb100
+00001323783i[PCI   ] setting SMRAM control register to 0x4a
+00001487876i[CPU0  ] Enter to System Management Mode
+00001487887i[CPU0  ] RSM: Resuming from System Management Mode
+00001651908i[PCI   ] setting SMRAM control register to 0x0a
+00001666774i[BIOS  ] MP table addr=0x000fa570 MPC table addr=0x000fa4a0 size=0xc8
+00001668596i[BIOS  ] SMBIOS table addr=0x000fa580
+00001670764i[BIOS  ] ACPI tables: RSDP addr=0x000fa6a0 ACPI DATA addr=0x00ff0000 size=0xf72
+00001673953i[BIOS  ] Firmware waking vector 0xff00cc
+00001675748i[PCI   ] i440FX PMC write to PAM register 59 (TLB Flush)
+00001676471i[BIOS  ] bios_table_cur_addr: 0x000fa6c4
+00001804088i[VBIOS ] VGABios $Id: vgabios.c,v 1.76 2013/02/10 08:07:03 vruppert Exp $
+00001804159i[BXVGA ] VBE known Display Interface b0c0
+00001804191i[BXVGA ] VBE known Display Interface b0c5
+00001807116i[VBIOS ] VBE Bios $Id: vbe.c,v 1.65 2014/07/08 18:02:25 vruppert Exp $
+00014259894i[BIOS  ] Booting from 0000:7c00
+00022822446i[FLOPPY] partial read() on floppy image returns 448/512
+00022866890i[FLOPPY] read() on floppy image returns 0
+00022911334i[FLOPPY] read() on floppy image returns 0
+00022955778i[FLOPPY] read() on floppy image returns 0
+00023000222i[FLOPPY] read() on floppy image returns 0
+00023046412i[FLOPPY] read() on floppy image returns 0
+00023090856i[FLOPPY] read() on floppy image returns 0
+00023135300i[FLOPPY] read() on floppy image returns 0
+00023179744i[FLOPPY] read() on floppy image returns 0
+00023224188i[FLOPPY] read() on floppy image returns 0
+00023268632i[FLOPPY] read() on floppy image returns 0
+00023313076i[FLOPPY] read() on floppy image returns 0
+00023357520i[FLOPPY] read() on floppy image returns 0
+00023401964i[FLOPPY] read() on floppy image returns 0
+00023446408i[FLOPPY] read() on floppy image returns 0
+00023490852i[FLOPPY] read() on floppy image returns 0
+00023535296i[FLOPPY] read() on floppy image returns 0
+00023579740i[FLOPPY] read() on floppy image returns 0
+00023624184i[FLOPPY] read() on floppy image returns 0
+00023668628i[FLOPPY] read() on floppy image returns 0
+00023713072i[FLOPPY] read() on floppy image returns 0
+00023757516i[FLOPPY] read() on floppy image returns 0
+00023801960i[FLOPPY] read() on floppy image returns 0
+00023848155i[FLOPPY] read() on floppy image returns 0
+00023892599i[FLOPPY] read() on floppy image returns 0
+00023937043i[FLOPPY] read() on floppy image returns 0
+00023981487i[FLOPPY] read() on floppy image returns 0
+00024025931i[FLOPPY] read() on floppy image returns 0
+00024070375i[FLOPPY] read() on floppy image returns 0
+00024114819i[FLOPPY] read() on floppy image returns 0
+00024159263i[FLOPPY] read() on floppy image returns 0
+00024203707i[FLOPPY] read() on floppy image returns 0
+00024248151i[FLOPPY] read() on floppy image returns 0
+00024292595i[FLOPPY] read() on floppy image returns 0
+00024337039i[FLOPPY] read() on floppy image returns 0
+00024381483i[FLOPPY] read() on floppy image returns 0
+00024425927i[FLOPPY] read() on floppy image returns 0
+00024470371i[FLOPPY] read() on floppy image returns 0
+00024514815i[FLOPPY] read() on floppy image returns 0
+00024559259i[FLOPPY] read() on floppy image returns 0
+00024603703i[FLOPPY] read() on floppy image returns 0
+00024649897i[FLOPPY] read() on floppy image returns 0
+00024694341i[FLOPPY] read() on floppy image returns 0
+00024738785i[FLOPPY] read() on floppy image returns 0
+00024783229i[FLOPPY] read() on floppy image returns 0
+00024827673i[FLOPPY] read() on floppy image returns 0
+00024872117i[FLOPPY] read() on floppy image returns 0
+00024916561i[FLOPPY] read() on floppy image returns 0
+00024961005i[FLOPPY] read() on floppy image returns 0
+00025005449i[FLOPPY] read() on floppy image returns 0
+00025049893i[FLOPPY] read() on floppy image returns 0
+00025094337i[FLOPPY] read() on floppy image returns 0
+00025138781i[FLOPPY] read() on floppy image returns 0
+00025183225i[FLOPPY] read() on floppy image returns 0
+00025227669i[FLOPPY] read() on floppy image returns 0
+00025272113i[FLOPPY] read() on floppy image returns 0
+00025316557i[FLOPPY] read() on floppy image returns 0
+00025361001i[FLOPPY] read() on floppy image returns 0
+00025405445i[FLOPPY] read() on floppy image returns 0
+00025451640i[FLOPPY] read() on floppy image returns 0
+00025496084i[FLOPPY] read() on floppy image returns 0
+00025540528i[FLOPPY] read() on floppy image returns 0
+00025584972i[FLOPPY] read() on floppy image returns 0
+00025629416i[FLOPPY] read() on floppy image returns 0
+00049856996i[XGUI  ] charmap update. Font Height is 16
+00300892000p[XGUI  ] >>PANIC<< POWER button turned off.
+00300892000i[CPU0  ] CPU is in protected mode (active)
+00300892000i[CPU0  ] CS.mode = 32 bit
+00300892000i[CPU0  ] SS.mode = 32 bit
+00300892000i[CPU0  ] EFER   = 0x00000000
+00300892000i[CPU0  ] | EAX=00000010  EBX=00001380  ECX=00413fac  EDX=00414187
+00300892000i[CPU0  ] | ESP=00413fd0  EBP=00413fe8  ESI=000e0200  EDI=00003ff4
+00300892000i[CPU0  ] | IOPL=0 id vip vif ac vm rf nt of df IF tf sf zf af pf cf
+00300892000i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00300892000i[CPU0  ] |  CS:0023( 0004| 0|  3) 00000000 ffffffff 1 1
+00300892000i[CPU0  ] |  DS:002b( 0005| 0|  3) 00000000 ffffffff 1 1
+00300892000i[CPU0  ] |  SS:002b( 0005| 0|  3) 00000000 ffffffff 1 1
+00300892000i[CPU0  ] |  ES:002b( 0005| 0|  3) 00000000 ffffffff 1 1
+00300892000i[CPU0  ] |  FS:0000( 0000| 0|  0) 00000000 00000000 0 0
+00300892000i[CPU0  ] |  GS:0000( 0000| 0|  0) 00000000 00000000 0 0
+00300892000i[CPU0  ] | EIP=0041402b (0041402b)
+00300892000i[CPU0  ] | CR0=0x80000011 CR2=0x00000000
+00300892000i[CPU0  ] | CR3=0x0002a000 CR4=0x00000000
+00300892000i[CPU0  ] 0x0041402b>> jmp .-3 (0x0041402a) : EBFD
+00300892000i[CMOS  ] Last time is 1772722011 (Thu Mar  5 15:46:51 2026)
+00300892000i[XGUI  ] Exit
+00300892000i[      ] restoring default signal behavior
+00300892000i[SIM   ] quit_sim called with exit code 1

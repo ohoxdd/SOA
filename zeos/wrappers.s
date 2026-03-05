@@ -21,7 +21,20 @@
  movl $4, %eax
 
 
+ pushl $return_write
+ pushl %ebp
+ movl %esp, %ebp
+
+
+
+
+
  sysenter
+
+return_write:
+
+ popl %ebp
+ addl $4, %esp
 
  cmpl $0, %eax
  jge write_end
@@ -33,6 +46,11 @@
 write_end:
  popl %ebx
  popl %ebp
+
+
+
+
+
  ret
 
 .globl gettime; .type gettime, @function; .align 0; gettime:

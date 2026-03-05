@@ -20,6 +20,7 @@ unsigned int *p_usr_size = (unsigned int *) KERNEL_START+1;
 unsigned int *p_rdtr = (unsigned int *) KERNEL_START+2;
 
 
+
 /*
  *   Main entry point to ZEOS Operating System
  */
@@ -40,7 +41,7 @@ int __attribute__((__section__(".text.main")))
   /*** DO *NOT* ADD ANY CODE IN THIS ROUTINE BEFORE THIS POINT ***/
 
   printk("Kernel Loaded!    ");
-  printk("Gooning mode... ON!!!!!");
+  printk("ULTRAKILL mode... ON!!!1!!!!");
 
 
   /* Initialize hardware data */
@@ -67,6 +68,7 @@ int __attribute__((__section__(".text.main")))
 
 
   printk("Entering user mode...");
+
 
   enable_int();
   /*

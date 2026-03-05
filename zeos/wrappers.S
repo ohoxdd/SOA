@@ -16,14 +16,18 @@ ENTRY(write)
 	// definimos la direccion de retorno y llamamos a sysenter
 	pushl $return_write
 	pushl %ebp
+	movl %esp, %ebp
 
 	// push de los valores de edx y ecx
-	pushl %edx
-	pushl %ecx
+	//pushl %edx
+	//pushl %ecx
 	
 	sysenter
 
 return_write:
+
+	popl %ebp
+	addl $4, %esp
 
 	cmpl $0, %eax
 	jge write_end	// todocorrecto si eax >= 0
@@ -37,8 +41,8 @@ write_end:
 	popl %ebp
 	
 	// recuperamos los valores
-	popl %ecx
-	popl %edx
+	//popl %ecx
+	//popl %edx
 
 	ret
 

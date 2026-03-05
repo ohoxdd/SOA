@@ -13,6 +13,8 @@
 extern void keyboard_handler();
 extern void system_call_handler();
 extern void clock_handler();
+extern void writeMSR(int msr, int value);
+extern void syscall_handler_sysenter();
 
 // ticks para el reloj
 int zeos_ticks = 0;
@@ -99,7 +101,7 @@ void setIdt()
 
 	writeMSR(0x174, __KERNEL_CS);
 	writeMSR(0x175, INITIAL_ESP);
-	writeMSR(0x176, (unsigned long)syscall_handler_sysenter());
+	writeMSR(0x176, (unsigned long)syscall_handler_sysenter);
 
   set_idt_reg(&idtR);
 }
