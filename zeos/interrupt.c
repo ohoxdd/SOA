@@ -62,7 +62,7 @@ void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
   /***********************************************************************/
   /* THE TRAP GATE FLAGS:                                  R1: pg. 5-11  */
   /* ********************                                                */
-  /* flags = x xx 0x111 000 ?????                                        */
+ /* flags = x xx 0x111 000 ?????                                        */
   /*         |  |  |                                                     */
   /*         |  |   \ D = Size of gate: 1 = 32 bits; 0 = 16 bits         */
   /*         |   \ DPL = Num. higher PL from which it is accessible      */
@@ -96,6 +96,10 @@ void setIdt()
 	setInterruptHandler(33, keyboard_handler, 0);
 	setTrapHandler(0x80, system_call_handler, 3);
 	setInterruptHandler(32, clock_handler, 0);
+
+	writeMSR(0x174, __KERNEL_CS);
+	writeMSR(0x175, INITIAL_ESP);
+	writeMSR(0x176, (unsigned long)syscall_handler_sysenter());
 
   set_idt_reg(&idtR);
 }

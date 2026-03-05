@@ -13,8 +13,17 @@ ENTRY(write)
 	// id de la syscall (write = 4)
 	movl $4, %eax
 	
-	// generamos el trap
-	int $0x80
+	// definimos la direccion de retorno y llamamos a sysenter
+	pushl $return_write
+	pushl %ebp
+
+	// push de los valores de edx y ecx
+	pushl %edx
+	pushl %ecx
+	
+	sysenter
+
+return_write:
 
 	cmpl $0, %eax
 	jge write_end	// todocorrecto si eax >= 0
@@ -26,6 +35,11 @@ ENTRY(write)
 write_end:
 	popl %ebx
 	popl %ebp
+	
+	// recuperamos los valores
+	popl %ecx
+	popl %edx
+
 	ret
 
 ENTRY(gettime)

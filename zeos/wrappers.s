@@ -21,7 +21,7 @@
  movl $4, %eax
 
 
- int $0x80
+ sysenter
 
  cmpl $0, %eax
  jge write_end
