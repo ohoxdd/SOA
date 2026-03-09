@@ -4,14 +4,15 @@
 # 1 "/usr/include/stdc-predef.h" 1 3 4
 # 0 "<command-line>" 2
 # 1 "suma.S"
-include <asm.h>
+# 1 "include/asm.h" 1
+# 2 "suma.S" 2
 
-ENTRY(addASM)
+.globl addASM; .type addASM, @function; .align 0; addASM:
  push %ebp
  mov %esp, %ebp
 
- mov 8(%ebp), %eac
- add 12(%ebp), %eac
+ mov 8(%ebp), %eax
+ add 12(%ebp), %eax
 
  pop %ebp
  ret

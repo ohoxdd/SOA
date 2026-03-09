@@ -18,6 +18,8 @@
 
 extern int zeos_ticks;
 
+char sys_buffer[256];
+
 int check_fd(int fd, int permissions)
 {
   if (fd!=1) return -9; /*EBADF*/
@@ -32,7 +34,7 @@ int sys_ni_syscall()
 
 int sys_write(int fd, char *buffer, int size) {
 	int err;
-	char sys_buffer[256];
+//	char sys_buffer[256]; //hay q ponerlo como global, de momento lo dejo pa no hacer un push solo de esto. Pero es por seguridad pa que no puedan hacer stack smashing a la pila de sistema, o algo asi
 	int bytes_left;
 	int ret = 0;
 	
