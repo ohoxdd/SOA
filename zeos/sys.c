@@ -13,6 +13,8 @@
 
 #include <sched.h>
 
+#include <errno.h>
+
 #define LECTURA 0
 #define ESCRIPTURA 1
 
@@ -42,8 +44,8 @@ int sys_write(int fd, char *buffer, int size) {
 	err = check_fd(fd, ESCRIPTURA); // solo escritura
 	if (err < 0) return err;	// fd invalido
 
-	if (buffer == NULL) return -14; // -EFAULT bad address
-	if (size < 0) return -22;		// -EINVAL invalid argument
+	if (buffer == NULL) return -EFAULT; // -EFAULT bad address
+	if (size < 0) return -EINVAL;		// -EINVAL invalid argument
 	
 	bytes_left = size;
 
@@ -62,6 +64,8 @@ int sys_write(int fd, char *buffer, int size) {
 
 	return ret;
 }
+
+
 
 int sys_gettime() {
 	return zeos_ticks;

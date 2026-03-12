@@ -42,6 +42,7 @@ return_write:
  negl %eax
  movl %eax, errno
  movl $-1, %eax
+ call perror
 
 write_end:
  popl %ebx

@@ -17,7 +17,7 @@ int __attribute__ ((__section__(".text.main")))
 
 	char *msg = "\nEsto es un mensaje.";
 	write(1, msg, 20);
-
+	write(1,msg,-1); //Triggers error write
   while(1) {
 		/*
 		int t = gettime();

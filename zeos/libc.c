@@ -6,11 +6,32 @@
 
 #include <types.h>
 
+#include <errno.h>
+
 int errno = 0;
 
 void perror(void) {
-	char error_msg[256];
-	write(1, "\nError SYSCALL\n", 32);
+  char errnoCode[16];
+  switch(errno)
+  {
+    case EINVAL:
+      write(1,"\nEINVAL: Invalid Argument\n",27);
+      break;
+    case EFAULT:
+      write(1,"\nEFAULT: Bad Adress\n",21);
+      break;
+    case ENOSYS:
+      write(1,"\nENOSYS: Syscall Not Implemented",33);
+      break;
+    case EACCES:
+      write(1,"\nEACCES: Permission Denied\n",28);
+      break;
+    default:
+      itoa(errno, errnoCode);
+      write(1, "Message for error ", 18);
+      write(1, errnoCode, strlen (errnoCode));
+      write(1, " not found\n", 11);
+  }
 }
 
 void itoa(int a, char *b)
