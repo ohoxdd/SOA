@@ -7,9 +7,13 @@
 #include <io.h>
 #include <hardware.h>
 
+extern void writeMSR(int msr, int value);
+
 char initial_stack[KERNEL_STACK_SIZE]; // Space for the initial system stack
 struct task_struct * init_task;
 struct task_struct * idle_task;
+
+
 
 void cpu_idle(void)
 {
@@ -75,6 +79,8 @@ void init_task1(void)
 	set_user_pages(UsAdress);
 
 	//Traducciones fisica logica pa mas adelante
+	int stack_frame = ((unsigned int) initial_stack) >> 12;
+	set_ss_pag(OsAddress, stack_frame, stack_frame, 0);
 	set_ss_pag(OsAddress,Dir,Dir,0);
 	set_ss_pag(OsAddress,Os_frame,Os_frame,0);
 	set_ss_pag(OsAddress,Us_frame,Us_frame,0);
@@ -114,7 +120,6 @@ void init_task1(void)
 	init_task = &(task1->task);
 }
 
-
 void init_sched()
 {
 
@@ -132,3 +137,10 @@ page_table_entry * get_PT (struct task_struct *t)
        return (page_table_entry *)(((unsigned int)(t->dir_pages_baseAddr->bits.pbase_addr))<<12);
 }
 
+void inner_task_switch(union task_union *new)
+{
+	set_cr3(new->task.dir_pages_baseAddr);
+	tss.esp0 = (unsigned long)(new) + KERNEL_STACK_SIZE * sizeof(unsigned long);
+	writeMSR(0x175,tss.esp0);
+	task_switch_part2(&current()->kernel_esp , new->task.kernel_esp);
+}

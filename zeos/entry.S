@@ -100,7 +100,6 @@ ENTRY(clock_handler)
 	RESTORE_ALL
 	iret
 
-
 ENTRY(syscall_handler_sysenter)
 	push $__USER_DS
 	push %EBP // User stack address
