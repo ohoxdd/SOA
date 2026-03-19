@@ -26,6 +26,9 @@ void perror(void) {
     case EACCES:
       write(1,"\nEACCES: Permission Denied\n",28);
       break;
+    case EBADF:
+      write(1,"\nEBADF: Bad file number\n",25);
+      break;
     default:
       itoa(errno, errnoCode);
       write(1, "Message for error ", 18);

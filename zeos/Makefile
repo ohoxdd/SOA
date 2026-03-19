@@ -33,7 +33,8 @@ SYSOBJ = \
 	devices.o \
 	utils.o \
 	list.o \
-	hardware.o
+	hardware.o \
+	switcher.o
 
 LIBZEOS = -L . -l zeos
 
@@ -82,6 +83,9 @@ sys_call_table.s: sys_call_table.S $(INCLUDEDIR)/asm.h $(INCLUDEDIR)/segment.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
 hardware.s: hardware.S $(INCLUDEDIR)/asm.h
+	$(CPP) $(ASMFLAGS) -o $@ $<
+
+switcher.s: switcher.S $(INCLUDEDIR)/asm.h
 	$(CPP) $(ASMFLAGS) -o $@ $<
 
 user.o:user.c $(INCLUDEDIR)/libc.h
