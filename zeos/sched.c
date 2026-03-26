@@ -26,7 +26,7 @@ void cpu_idle(void)
 
 void init_idle (void)
 {
-		//Tabla DIR
+	//Tabla DIR
 	int Dir = alloc_frame();//indice TP
 	page_table_entry *DirAddress = (page_table_entry *)(Dir << 12); //la dirección son los 20B de mayor peso con 0 en los 12 de menor peso
 	clear_page_table(DirAddress);
@@ -79,8 +79,6 @@ void init_task1(void)
 	set_user_pages(UsAdress);
 
 	//Traducciones fisica logica pa mas adelante
-	int stack_frame = ((unsigned int) initial_stack) >> 12;
-	set_ss_pag(OsAddress, stack_frame, stack_frame, 0);
 	set_ss_pag(OsAddress,Dir,Dir,0);
 	set_ss_pag(OsAddress,Os_frame,Os_frame,0);
 	set_ss_pag(OsAddress,Us_frame,Us_frame,0);
@@ -114,8 +112,8 @@ void init_task1(void)
 	writeMSR(0x175,tss.esp0);
 
 	task1->task.dir_pages_baseAddr = DirAddress;
-
-	set_cr3(DirAddress);
+	printk("test"); //pa saber cuando estoy a punto de hacer el set_cr3
+	set_cr3(Dir);
 
 	init_task = &(task1->task);
 }
