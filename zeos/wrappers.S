@@ -64,3 +64,30 @@ ENTRY(gettime)
 gettime_end:
 	popl %ebp
 	ret
+
+ENTRY(getpid)
+	pushl %ebp
+	movl %esp, %ebp
+
+	movl $20, %eax // getpid id
+
+	pushl $return_getpid
+	pushl %ebp
+	movl %esp, %ebp
+
+	sysenter
+
+return_getpid:
+	popl %ebp
+	addl $4, %esp
+
+	cmpl $0, %eax
+	jge getpid_end
+
+	negl %eax
+	movl %eax, errno
+	movl $-1, %eax
+
+getpid_end:
+	popl %ebp
+	ret

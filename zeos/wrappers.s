@@ -71,3 +71,30 @@ write_end:
 gettime_end:
  popl %ebp
  ret
+
+.globl getpid; .type getpid, @function; .align 0; getpid:
+ pushl %ebp
+ movl %esp, %ebp
+
+ movl $20, %eax
+
+ pushl $return_getpid
+ pushl %ebp
+ movl %esp, %ebp
+
+ sysenter
+
+return_getpid:
+ popl %ebp
+ addl $4, %esp
+
+ cmpl $0, %eax
+ jge getpid_end
+
+ negl %eax
+ movl %eax, errno
+ movl $-1, %eax
+
+getpid_end:
+ popl %ebp
+ ret

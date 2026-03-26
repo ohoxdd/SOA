@@ -6,6 +6,7 @@
 #include <segment.h>
 #include <hardware.h>
 #include <io.h>
+#include <sched.h>
 
 #include <zeos_interrupt.h>
 
@@ -115,6 +116,9 @@ void keyboard_routine() {
 	// Solo hacemos algo cuando baja la letra, es decir
 	// cuando el bit 7 de inb es 0 (Make)
 	if ((c & 0x80) == 0)  {
+
+		//task_switch(idle_task);
+
 		// 7 LSB = scan code
 		scan_code = c & 0x7F;
 		// ver q tecla es en ascii

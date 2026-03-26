@@ -15,9 +15,12 @@ int __attribute__ ((__section__(".text.main")))
 
     //int result = add(66,1638);
 
-	char *msg = "\nEsto es un mensaje.";
-	write(1, msg, 20);
+	//char *msg = "\nEsto es un mensaje.";
+	//write(1, msg, 20);
 	//write(1,msg,-1); //Triggers error write
+	char pid_buf[16];
+	itoa(getpid(), pid_buf);
+	write(1, pid_buf, 16);
   while(1) {
 		/*
 		int t = gettime();
