@@ -112,8 +112,8 @@ void init_task1(void)
 	writeMSR(0x175,tss.esp0);
 
 	task1->task.dir_pages_baseAddr = DirAddress;
-	printk("test"); //pa saber cuando estoy a punto de hacer el set_cr3
-	set_cr3(Dir);
+	//printk("test"); //pa saber cuando estoy a punto de hacer el set_cr3
+	set_cr3(DirAddress);
 
 	init_task = &(task1->task);
 }
@@ -126,7 +126,7 @@ void init_sched()
 /* get_DIR - Returns the Page Directory address for task 't' */
 page_table_entry * get_DIR (struct task_struct *t)
 {
-       return t->dir_pages_baseAddr;
+	return t->dir_pages_baseAddr;
 }
 
 /* get_PT - Returns the Page Table address for task 't' */
