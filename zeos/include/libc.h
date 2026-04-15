@@ -13,6 +13,10 @@ int write(int fd, char *buffer, int size);
 int gettime(void);
 void perror(void);
 int getpid(void);
+int fork(void);
+void exit(void);
+void block(void);
+int unblock(int pid);
 
 int strlen(char *a);
 

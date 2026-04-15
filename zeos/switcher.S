@@ -7,7 +7,7 @@ ENTRY(task_switch)
     push %esi
     push %edi
     push %ebx
-// llama a sched.c
+// llama a sched.c inner task_switch
     push 0x8(%ebp)
     call inner_task_switch
     add $4, %esp

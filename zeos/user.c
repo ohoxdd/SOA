@@ -18,18 +18,34 @@ int __attribute__ ((__section__(".text.main")))
 	char *msg = "\nEsto es un mensaje.\n\n\n\n---------> THIS WAS PRINTED IN USER MODE <---------";
 	write(1, msg, 76);
 	//write(1,msg,-1); //Triggers error write
-	char pid_buf[16];
-	itoa(getpid(), pid_buf);
 	msg = "PID = ";
 	write(1,msg,7);
-	write(1, pid_buf, 16);
-  while(1) {
-	
-		/*
-		int t = gettime();
-		if (t >= 500) {
-			write(1, msg, 16);
+	int pid = fork(); 
+	int checkH = 0, checkP = 0;
+	int n = 0;
+	char ublockBuffer[32];
+
+	while(1) {
+		n++;
+		//itoa(getpid(), pid_buf_alt);
+		if(pid == 0) //hijo
+		{
+			write(1,"WORKED\n\n\n\n\n",12);
+			checkH = 1;
+			block();
+			write(1,"EXITED BLOCK :))\n\n",19);
 		}
-		*/
+		if(pid != 0 && checkP == 0)
+		{
+			write(1,"CHECKED",8);
+			checkP = 1;
+		}
+		if(pid != 0 && n%10000000 == 0)
+		{
+			int ublock = unblock(pid);
+			itoa(ublock,ublockBuffer);
+			write(1,"Process unblock return: ",25);
+			write(1,ublockBuffer,4);
+		}
 	}
 }

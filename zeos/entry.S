@@ -95,8 +95,8 @@ fin:
 
 ENTRY(clock_handler)
 	SAVE_ALL
-	EOI
 	call clock_routine
+	EOI
 	RESTORE_ALL
 	iret
 
