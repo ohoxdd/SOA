@@ -149,6 +149,8 @@ ENTRY(block)
 	sysenter
 
 ret_block:
+	pop %ebp
+	addl $4, %esp //quitamos valor $ret_block
 	cmpl $0, %eax
 	jge block_end
 	neg %eax
@@ -156,7 +158,6 @@ ret_block:
 	movl $-1, %eax
 
 block_end:
-	popl %ebp
 	popl %ebp
 	ret
 
@@ -175,7 +176,7 @@ ENTRY(unblock)
 
 ret_unblock:
 	popl %ebp
-	popl %edx
+	addl $4, %esp //quitamos $ret_unlock
 	cmpl $0, %eax
 	jge unblock_end
 	neg %eax

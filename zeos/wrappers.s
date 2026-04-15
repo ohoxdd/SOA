@@ -156,6 +156,8 @@ ret_exit:
  sysenter
 
 ret_block:
+ pop %ebp
+ addl $4, %esp
  cmpl $0, %eax
  jge block_end
  neg %eax
@@ -163,7 +165,6 @@ ret_block:
  movl $-1, %eax
 
 block_end:
- popl %ebp
  popl %ebp
  ret
 
@@ -182,7 +183,7 @@ block_end:
 
 ret_unblock:
  popl %ebp
- popl %edx
+ addl $4, %esp
  cmpl $0, %eax
  jge unblock_end
  neg %eax

@@ -136,7 +136,8 @@ int sys_unblock(int pid)
 
 	list_for_each(pos,head)
 	{
-		struct task_struct *t = list_head_to_task_struct(pos);
+		//como el task_struct está siempre al inicio de una pagina, accedemos a el con este truquito
+		struct task_struct *t = (struct task_struct *)((unsigned long)pos & 0xfffff000);		
 		if(t->PID == pid)
 		{
 			if(t->status == ST_BLOCKED)
@@ -232,7 +233,7 @@ int sys_fork()
 		del_ss_pag(parent_PT,temp_logical_page); // se elimina la traducción a fisica del hijo
 		set_cr3(get_DIR(parent));
 	}
-	
+	latestPID++;
 	child->task.PID = latestPID;
 	child->task.quantum = INIT_QUANTUM;
 	/*

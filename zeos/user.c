@@ -15,11 +15,9 @@ int __attribute__ ((__section__(".text.main")))
 
     //int result = add(66,1638);
 
-	char *msg = "\nEsto es un mensaje.\n\n\n\n---------> THIS WAS PRINTED IN USER MODE <---------";
+	char *msg = "\nEsto es un mensaje.\n\n\n\n---------> THIS WAS PRINTED IN USER MODE <---------\n";
 	write(1, msg, 76);
 	//write(1,msg,-1); //Triggers error write
-	msg = "PID = ";
-	write(1,msg,7);
 	int pid = fork(); 
 	int checkH = 0, checkP = 0;
 	int n = 0;
@@ -37,7 +35,7 @@ int __attribute__ ((__section__(".text.main")))
 		}
 		if(pid != 0 && checkP == 0)
 		{
-			write(1,"CHECKED",8);
+			write(1,"CHECKED",8);	 
 			checkP = 1;
 		}
 		if(pid != 0 && n%10000000 == 0)
