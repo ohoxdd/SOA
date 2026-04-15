@@ -3,3 +3,11 @@ bochs-2.6.7
 apunts
 zeos/bochsout.txt
 *.o
+*.s
+zeos/bootsect
+zeos/build
+zeos/system
+zeos/system.out
+zeos/user
+zeos/user.out
+zeos/zeos.bin
