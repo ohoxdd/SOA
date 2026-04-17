@@ -75,24 +75,6 @@ ENTRY(keyboard_handler)
 	RESTORE_ALL
 	iret
 
-ENTRY(system_call_handler)
-	SAVE_ALL
-	cmpl $0, %eax // comprobamos que no sea negativo
-	jl err
-	cmpl $MAX_SYSCALL, %eax // y q no sea mayor al maximo
-	jg err
-
-	// llamamos a la funcion de write en la tabla
-	call *sys_call_table(, %eax, 0x04)
-	jmp fin
-err:
-	movl $-38, %eax // codigo de -ENOSYS (funcion sin implementar)
-fin:
-	movl %eax, 0x18(%esp) // guardar resultado para que restore all no lo
-							// machaque
-	RESTORE_ALL
-	iret
-
 ENTRY(clock_handler)
 	SAVE_ALL
 	call clock_routine

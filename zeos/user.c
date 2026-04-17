@@ -19,31 +19,50 @@ int __attribute__ ((__section__(".text.main")))
 	write(1, msg, 76);
 	//write(1,msg,-1); //Triggers error write
 	int pid = fork(); 
-	int checkH = 0, checkP = 0;
-	int n = 0;
 	char ublockBuffer[32];
-
-	while(1) {
-		n++;
-		//itoa(getpid(), pid_buf_alt);
-		if(pid == 0) //hijo
+	//itoa(getpid(), pid_buf_alt);
+	if(pid == 0) //hijo
+	{
+		write(1,"I'm child, with pid = ",23);
+		msg = "";	
+		itoa(getpid(),msg);
+		write(1,msg,3);
+		write(1," \n",3);
+		block();
+		write(1,"EXITED BLOCK\n\n",15);
+		exit();
+	}
+	if(pid != 0)
+	{
+		//write(1,"CHECKED",8);	 
+		write(1,"Process unblocked, return: ",28);
+		int ublock = unblock(pid);
+		itoa(ublock,ublockBuffer);
+		write(1,ublockBuffer,4);
+		pid = fork();
+		if(pid == 0)
 		{
-			write(1,"WORKED\n\n\n\n\n",12);
-			checkH = 1;
-			block();
-			write(1,"EXITED BLOCK :))\n\n",19);
+			write(1,"I'm child, with pid = ",23);
+			msg = "";
+			itoa(getpid(),msg);
+			write(1,msg,3);
+			exit();
+			write(1,"I will never be printed\n",25);
 		}
-		if(pid != 0 && checkP == 0)
+		else
 		{
-			write(1,"CHECKED",8);	 
-			checkP = 1;
-		}
-		if(pid != 0 && n%10000000 == 0)
-		{
-			int ublock = unblock(pid);
-			itoa(ublock,ublockBuffer);
-			write(1,"Process unblock return: ",25);
-			write(1,ublockBuffer,4);
+			write(1,"\nI am the parent proc!\n",23);
 		}
 	}
+	if(pid == 0)
+	{
+		exit();
+	}
+	write(1,"My PID is: ",12);
+	msg = "";
+	itoa(getpid(),msg);
+	write(1,msg,4);
+
+	
+	while(1) {}
 }

@@ -97,7 +97,6 @@ void setIdt()
 	//registramos en la idt el handler de teclado asociandolo
 	//al interrupt de teclado (el numero 33)
 	setInterruptHandler(33, keyboard_handler, 0);
-	setTrapHandler(0x80, system_call_handler, 3);
 	setInterruptHandler(32, clock_handler, 0);
 
 	writeMSR(0x174, __KERNEL_CS);

@@ -259,6 +259,5 @@ int sys_fork()
 
 	list_add(&(child->task.siblings), &(current()->children)); //se añade child a la lista children del padre
 
-	//printk("funciono");
 	return child->task.PID; //devolvemos PID hijo (esto lo hace solo el padre, el hijo va a ret_from_fork(si no peta nada))
 }
