@@ -177,7 +177,9 @@ int init_frames( void )
 
     // Special pages used by bootsect or devices...
     phys_mem[0x90] = USED_FRAME; /* 0x90000 GDT */
-    phys_mem[0xb8] = USED_FRAME; /* 0xb8000 screen */
+    for (i=0xA0; i<0x100; i++) {/* 0xA0000-0xBFFFF screen, 0xC0000-0xFFFFF BIOS */
+        phys_mem[i] = USED_FRAME;
+    }
     return 0;
 }
 

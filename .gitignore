@@ -2,6 +2,7 @@ bochs-2.6.7
 *.tar.gz
 apunts
 zeos/bochsout.txt
+Projecte/bochsout.txt
 *.o
 *.s
 zeos/bootsect
@@ -11,3 +12,10 @@ zeos/system.out
 zeos/user
 zeos/user.out
 zeos/zeos.bin
+Projecte/bootsect
+Projecte/build
+Projecte/system
+Projecte/system.out
+Projecte/user
+Projecte/user.out
+Projecte/zeos.bin
