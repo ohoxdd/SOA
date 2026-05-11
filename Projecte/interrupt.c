@@ -18,18 +18,7 @@ extern void clock_handler();
 extern void writeMSR(int msr, int value);
 extern void syscall_handler_sysenter();
 
-struct circular_buffer cbuffer;
 
-int cbuffer_write(char c) {
-  if (cbuffer.count == 1024) 
-    return -1; 
-
-  *(char*)cbuffer.wr = c;
-  if (cbuffer.wr == cbuffer.buffer + 1024) cbuffer.wr = cbuffer.buffer;
-  else cbuffer.wr = (char*)cbuffer.wr + 1;
-
-  return 0;
-}
 
 // ticks para el reloj
 int zeos_ticks = 0;
@@ -119,9 +108,6 @@ void setIdt()
 
   set_idt_reg(&idtR);
 
-  cbuffer.wr = cbuffer.buffer;
-  cbuffer.rd = cbuffer.buffer;
-  cbuffer.count = 0;
 }
 
 void keyboard_routine() {
@@ -142,7 +128,10 @@ void keyboard_routine() {
 		char ascii_char = char_map[scan_code];
 
     int c = cbuffer_write(ascii_char);
-
+    if(c<0)
+    {
+      //cbuffer_write ha fallado.
+    }
 		//imprimimos
 		if (ascii_char != '\0') {
 			printc_xy(0,0,ascii_char);
@@ -153,9 +142,8 @@ void keyboard_routine() {
 }
 
 
-void clock_routine(void) {
-  update_sched_data_rr();
-	zeos_show_clock();
+void  clock_routine(void) {
+	//zeos_show_clock();
 	zeos_ticks++;
 }
 

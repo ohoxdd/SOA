@@ -109,7 +109,7 @@ void sys_exit()//elimina current y alibera todos sus recursos
 		child->parent = idle_task;
 		list_add_tail(item , &(idle_task->children));
 	}
-
+	
   	sched_next_rr();
 }
 
@@ -260,4 +260,19 @@ int sys_fork()
 	list_add(&(child->task.siblings), &(current()->children)); //se añade child a la lista children del padre
 
 	return child->task.PID; //devolvemos PID hijo (esto lo hace solo el padre, el hijo va a ret_from_fork(si no peta nada))
+}
+
+int sys_read(char* b, int maxchars)
+{
+	for(int i = 0 ; i < maxchars ; i++)
+	{
+		if(cbuffer.count == 0)
+		{
+			i--; //para q espere hasta tener maxchars. Hay q mirar q cuente como bloqueante
+		}
+		else
+		{
+			b[i] = cbuffer_read();
+		}
+	}
 }

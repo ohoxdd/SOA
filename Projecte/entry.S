@@ -77,8 +77,13 @@ ENTRY(keyboard_handler)
 
 ENTRY(clock_handler)
 	SAVE_ALL
-	call clock_routine
 	EOI
+	call clock_routine
+	cmpl $__USER_CS, 0x30(%esp)
+	jne clock_handler_end 
+	call update_sched_data_rr //salta solo si en modo usuario
+
+clock_handler_end:
 	RESTORE_ALL
 	iret
 

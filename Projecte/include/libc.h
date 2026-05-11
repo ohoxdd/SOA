@@ -17,6 +17,7 @@ int fork(void);
 void exit(void);
 void block(void);
 int unblock(int pid);
+int read(char* b, int maxchar);
 
 int strlen(char *a);
 

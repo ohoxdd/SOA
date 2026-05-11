@@ -32,9 +32,8 @@ int __attribute__ ((__section__(".text.main")))
 	if(pid == 0) //hijo
 	{
 		write(1,"I'm child, with pid = ",23);
-		msg = "";	
-		itoa(getpid(),msg);
-		write(1,msg,3);
+		itoa(getpid(),buff);
+		write(1,buff,3);
 		write(1," \n",3);
 		block();
 		write(1,"EXITED BLOCK\n\n",15);
@@ -51,9 +50,8 @@ int __attribute__ ((__section__(".text.main")))
 		if(pid == 0)
 		{
 			write(1,"I'm child, with pid = ",23);
-			msg = "";
-			itoa(getpid(),msg);
-			write(1,msg,3);
+			itoa(getpid(),buff);
+			write(1,buff,3);
 			exit();
 			write(1,"I will never be printed\n",25);
 		}
@@ -67,10 +65,8 @@ int __attribute__ ((__section__(".text.main")))
 		exit();
 	}
 	write(1,"My PID is: ",12);
-	msg = "";
-	itoa(getpid(),msg);
-	write(1,msg,4);
-
-	
-	while(1) {}
+	itoa(getpid(),buff);
+	write(1,buff,4);
+	write(1,"----------------------\n",23);
+	while(1){}
 }

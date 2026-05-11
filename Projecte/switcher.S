@@ -23,7 +23,7 @@ ENTRY(task_switch_part2)
     mov %esp, %ebp
 
     movl 0x8(%ebp), %eax
-    movl %ebp, (%eax)
+    movl %esp, (%eax)
     movl 0xc(%ebp) , %esp
     pop %ebp
     ret

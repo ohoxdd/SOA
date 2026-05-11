@@ -9,6 +9,7 @@
 #include <system.h>
 #include <sched.h>
 #include <mm.h>
+#include <devices.h>
 #include <io.h>
 #include <utils.h>
 #include <zeos_mm.h> /* TO BE DELETED WHEN ADDED THE PROCESS MANAGEMENT CODE TO BECOME MULTIPROCESS */
@@ -57,6 +58,9 @@ int __attribute__((__section__(".text.main")))
 
   /* Initialize Scheduling */
   init_sched();
+
+  /* Initialize shared keyboard circular buffer before interrupts. */
+  cbuffer_init();
 
   /* Initialize task 1 data */
   init_task1();

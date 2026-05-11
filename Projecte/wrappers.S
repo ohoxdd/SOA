@@ -186,3 +186,31 @@ ret_unblock:
 unblock_end:
 	popl %ebp
 	ret
+
+ENTRY(read)
+	pushl %ebp
+	movl %esp, %ebp
+
+	movl 8(%ebp), %edx //char* b pasado como parametro
+	movl 12(%ebp), %ecx //int maxchars
+
+	movl $67, %eax
+	pushl $ret_read
+
+	pushl %ebp
+	movl %esp, %ebp
+	sysenter
+
+ret_read:
+	pop %ebp
+	addl $4, %esp
+
+	cmpl $0, %eax
+	jge read_end
+	neg %eax
+	movl %eax, errno
+	movl $-1, %eax
+
+read_end:
+	popl %ebp
+	ret
