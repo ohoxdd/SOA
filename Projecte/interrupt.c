@@ -127,13 +127,25 @@ void keyboard_routine() {
 		// ver q tecla es en ascii
 		char ascii_char = char_map[scan_code];
 
-    int c = cbuffer_write(ascii_char);
-    if(c<0)
-    {
-      //cbuffer_write ha fallado.
-    }
+    
 		//imprimimos
 		if (ascii_char != '\0') {
+      int c = cbuffer_write(ascii_char);
+      if(c < 0)
+      {
+        return; // cbuffer lleno
+      }
+      // Desbloquear un proceso bloqueado si los hay
+      if(!list_empty(&blocked))
+      {
+        struct list_head *blocked_task_list = list_first(&blocked);
+        struct task_struct *blocked_task = list_head_to_task_struct(blocked_task_list);
+        
+        // Cambiar estado a READY y mover a readyqueue
+        blocked_task->status = ST_READY;
+        list_del(blocked_task_list);
+        list_add_tail(blocked_task_list, &readyqueue);
+      }
 			printc_xy(0,0,ascii_char);
 		} else {
 			printc_xy(0,0,'C');
@@ -144,6 +156,7 @@ void keyboard_routine() {
 
 void  clock_routine(void) {
 	//zeos_show_clock();
+  update_sched_data_rr();
 	zeos_ticks++;
 }
 

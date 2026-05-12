@@ -194,7 +194,7 @@ ENTRY(read)
 	movl 8(%ebp), %edx //char* b pasado como parametro
 	movl 12(%ebp), %ecx //int maxchars
 
-	movl $67, %eax
+	movl $7, %eax
 	pushl $ret_read
 
 	pushl %ebp

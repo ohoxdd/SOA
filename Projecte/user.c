@@ -26,9 +26,10 @@ int __attribute__ ((__section__(".text.main")))
 	char *msg = "\nEsto es un mensaje.\n\n\n\n---------> THIS WAS PRINTED IN USER MODE <---------\n";
 	write(1, msg, 76);
 	//write(1,msg,-1); //Triggers error write
-	int pid = fork(); 
+	//int pid = fork(); 
 	char ublockBuffer[32];
 	//itoa(getpid(), pid_buf_alt);
+	/*
 	if(pid == 0) //hijo
 	{
 		write(1,"I'm child, with pid = ",23);
@@ -52,21 +53,30 @@ int __attribute__ ((__section__(".text.main")))
 			write(1,"I'm child, with pid = ",23);
 			itoa(getpid(),buff);
 			write(1,buff,3);
+			unblock(1); //desbloquea padre
 			exit();
 			write(1,"I will never be printed\n",25);
 		}
 		else
 		{
+			block();
 			write(1,"\nI am the parent proc!\n",23);
 		}
 	}
 	if(pid == 0)
 	{
 		exit();
-	}
+	}*/
 	write(1,"My PID is: ",12);
 	itoa(getpid(),buff);
 	write(1,buff,4);
-	write(1,"----------------------\n",23);
-	while(1){}
+	write(1,"\n----------------------\n",24);
+	char output[10];
+	write(1,"TEST READ: INPUT 10 CHARS\n",27);
+	while(1){
+		read(&output,10);
+		write(1,"\n",1);
+		write(1,output,10);
+		write(1,"\n",1);
+	}
 }

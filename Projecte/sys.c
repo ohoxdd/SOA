@@ -264,15 +264,24 @@ int sys_fork()
 
 int sys_read(char* b, int maxchars)
 {
-	for(int i = 0 ; i < maxchars ; i++)
+	if (maxchars < 0) return -EINVAL;
+    if (maxchars == 0) return 0;
+	char* debug = b;
+	int chars_read = 0;
+	
+	while(chars_read < maxchars)
 	{
 		if(cbuffer.count == 0)
 		{
-			i--; //para q espere hasta tener maxchars. Hay q mirar q cuente como bloqueante
+			sys_block(); //proceso es blocked si no hay caracteres en cbuffer.
+			//Para volver, se desbloquea en el keyboard interrupt
 		}
-		else
-		{
-			b[i] = cbuffer_read();
+		while (cbuffer.count != 0) {
+			char c = cbuffer_read();
+			b[chars_read] = c;
+			debug[chars_read] = b[chars_read];
+			chars_read++;
 		}
 	}
+	return 1;
 }

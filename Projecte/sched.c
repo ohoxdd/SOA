@@ -177,6 +177,7 @@ void update_sched_data_rr(void)
 	if(needs_sched_rr()) {
 		if(idle_task != current()) //pq idle es caso excepcional
 			update_process_state_rr(current(), &readyqueue);
+			
 		sched_next_rr();
 	}
 }

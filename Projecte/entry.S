@@ -79,9 +79,9 @@ ENTRY(clock_handler)
 	SAVE_ALL
 	EOI
 	call clock_routine
-	cmpl $__USER_CS, 0x30(%esp)
-	jne clock_handler_end 
-	call update_sched_data_rr //salta solo si en modo usuario
+	//cmpl $__USER_CS, 0x30(%esp)
+	jmp clock_handler_end 
+	//call update_sched_data_rr //salta solo si en modo usuario
 
 clock_handler_end:
 	RESTORE_ALL
