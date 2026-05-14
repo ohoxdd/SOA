@@ -36,12 +36,12 @@ extern char* itoa(int, char*);
 /***********************************************/
 /************** PAGING MANAGEMENT **************/
 /***********************************************/
-
+#define PAGE_TABLE_ENTRIES 1024
 /* Initializes the page table */
 void clear_page_table(page_table_entry* process_PT)
 {
   int i;
-  for (i=0; i<TOTAL_PAGES; i++) {
+  for (i=0; i<PAGE_TABLE_ENTRIES; i++) {
     process_PT[i].entry = 0;
   }
 }
