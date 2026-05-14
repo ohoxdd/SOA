@@ -2,8 +2,6 @@
 
 char buff[24];
 
-int pid;
-
 int add(int par1, int par2) {return par1+par2;}
 int addASM(int par1, int par2);
 
@@ -80,17 +78,20 @@ int __attribute__ ((__section__(".text.main")))
 	write(1,"\n----------------------\n",24);
 	char output[10];
 	write(1,"TEST READ: INPUT 10 CHARS\n",27);
+	int pid;
 	while(1){
 		pid = fork();
-		if(pid != 0){
+		if(pid > 0)//pare
+		{
 			itoa(getpid(),buff);
 			write(1,buff,strlen(buff));
-			block();}
-		//SI LLEGA 36 TA MAL
-		/*read(&output,10);
-		write(1,output,10);
-		itoa(getpid(),buff);
-		write(1,buff,strlen(buff));
-		write(1," \n",1);*/
+			block();
+		}
+		if(pid<0)
+		{
+			write(1,"Limit Reached!\n",16);
+			read(buff,10);
+		}
+
 	}
 }

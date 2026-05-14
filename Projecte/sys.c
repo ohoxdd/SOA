@@ -162,6 +162,7 @@ int sys_fork()
 	struct task_struct *parent = current(); // PCB del padre
 	union task_union *child;
 	page_table_entry *SPT = (page_table_entry *) (parent->dir_pages_baseAddr[0].bits.pbase_addr << 12);
+	page_table_entry *SPT2 = (page_table_entry *) (parent->dir_pages_baseAddr[1].bits.pbase_addr << 12);
 
 	int Childframe = alloc_frame();
 	if(Childframe < 0)
@@ -170,23 +171,28 @@ int sys_fork()
 	}
 	child = (union task_union *) (Childframe << 12);
 	set_ss_pag(SPT, Childframe, Childframe, 0);
+	set_ss_pag(SPT2,Childframe, Childframe, 0);
 	set_cr3(get_DIR(parent));
 	copy_data(parent, child, sizeof(union task_union)); //se copia tol union de padre al frame del hijo
 
+	/**/
     int child_pd_frame = alloc_frame();
     if (child_pd_frame < 0) {return -ENOMEM; }
 	set_ss_pag(SPT,child_pd_frame,child_pd_frame,0);
+	set_ss_pag(SPT2,child_pd_frame,child_pd_frame,0);
 	set_cr3(get_DIR(parent));
     child->task.dir_pages_baseAddr = (page_table_entry *) (child_pd_frame << 12);
     clear_page_table(child->task.dir_pages_baseAddr);
     
     // Compartir el mapa del sistema(Todos los procesos apuntan al mismo)
     child->task.dir_pages_baseAddr[0] = parent->dir_pages_baseAddr[0];
+	child->task.dir_pages_baseAddr[1] = parent->dir_pages_baseAddr[1];
 
     //Asignar Tabla de Páginas de Usuario
     int child_upt_frame = alloc_frame();
     if (child_upt_frame < 0) {return -ENOMEM;}
 	set_ss_pag(SPT,child_upt_frame,child_upt_frame,0);
+	set_ss_pag(SPT2,child_upt_frame,child_upt_frame,0);
 	set_cr3(get_DIR(parent));
     
     child->task.dir_pages_baseAddr[2].entry = 0;
@@ -209,11 +215,11 @@ int sys_fork()
 		int new_frame = alloc_frame();
 		if(new_frame < 0) // Free todos los allocate usados si no hay espacio para todos los necesarios
 		{
-			free_frame(new_frame);
 			for(int j = 0 ; j < i ; j++)
 			{
+				del_ss_pag(child_PT,j);
 				free_frame(get_frame(child_PT,j));
-				del_ss_pag(child_PT,PAG_LOG_INIT_DATA+j);
+				
 			}
 			free_frame(Childframe);
 			free_frame(child_pd_frame);

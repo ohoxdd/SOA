@@ -76,7 +76,7 @@ void init_task1(void)
 	page_table_entry *OsAddress = (page_table_entry *)(Os_frame << 12);
 	clear_page_table(OsAddress);
 
-	//Nueva TP? -- Revisar q esto funcione correctamente --
+	//Nueva TP
 	int OS2_frame = alloc_frame();
 	page_table_entry *OS2Address = (page_table_entry *)(OS2_frame << 12);
 	clear_page_table(OS2Address);
@@ -170,9 +170,9 @@ void inner_task_switch(union task_union *new)
 	
 	tss.esp0 = (unsigned long)(new) + KERNEL_STACK_SIZE * sizeof(unsigned long);
 	writeMSR(0x175,tss.esp0);
-	set_cr3(new->task.dir_pages_baseAddr);
 	struct task_struct *old_task = current();
 	task_switch_part2(&current()->kernel_esp , new->task.kernel_esp);
+	set_cr3(new->task.dir_pages_baseAddr);
 }
 
 struct task_struct *list_head_to_task_struct(struct list_head *l)
