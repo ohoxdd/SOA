@@ -1,0 +1,5 @@
+no ho heu provat. No podeu fer servir sys_block per bloquejar processos
+pendents de llegir de teclat: heu de crear una altra cua i bloquejar-los
+alla. A mes, que passa quan tens més d'un proces bloquejat al teclat?
+S'haurien de servir les tecles en ordre fins llegir maxchars.
+

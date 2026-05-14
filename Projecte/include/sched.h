@@ -27,6 +27,7 @@ struct task_struct {
   struct task_struct * parent;
   struct list_head children;
   struct list_head siblings;
+  struct list_head listIO;
 };
 
 
@@ -41,6 +42,7 @@ union task_union {
 extern struct task_struct * idle_task;
 extern struct list_head blocked;
 extern struct list_head readyqueue;
+extern struct list_head blockedIO;
 extern char initial_stack[KERNEL_STACK_SIZE];
 #define INITIAL_ESP             (DWord) &initial_stack[KERNEL_STACK_SIZE]
 

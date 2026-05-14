@@ -256,6 +256,7 @@ int sys_fork()
 	child->task.pending_unblocks = 0;
 	child->task.status = ST_READY;
 	INIT_LIST_HEAD(&(child->task.children));//inicializa lista hijos 
+	INIT_LIST_HEAD(&(child->task.listIO));  //inicializa lista blockedIO
 
 	list_add(&(child->task.siblings), &(current()->children)); //se añade child a la lista children del padre
 
@@ -266,22 +267,27 @@ int sys_read(char* b, int maxchars)
 {
 	if (maxchars < 0) return -EINVAL;
     if (maxchars == 0) return 0;
-	char* debug = b;
+	
 	int chars_read = 0;
 	
 	while(chars_read < maxchars)
 	{
 		if(cbuffer.count == 0)
 		{
-			sys_block(); //proceso es blocked si no hay caracteres en cbuffer.
-			//Para volver, se desbloquea en el keyboard interrupt
+			if(list_first(&(blockedIO)) != &(current()->listIO))
+				list_add_tail(&(current()->listIO), &blockedIO);
+			current()->status = ST_BLOCKED;
+			sched_next_rr();  // El interrupt me añadirá a readyqueue al haber interrupt
 		}
-		while (cbuffer.count != 0) {
+		// Leer todos los caracteres disponibles
+		while (cbuffer.count != 0 && chars_read < maxchars) {
 			char c = cbuffer_read();
 			b[chars_read] = c;
-			debug[chars_read] = b[chars_read];
 			chars_read++;
 		}
 	}
+	
+	struct list_head *blocked_task_list = list_first(&blockedIO);
+	list_del(blocked_task_list);//lo quito de blockedIO, respetando FIFO en lectura de chars
 	return 1;
 }

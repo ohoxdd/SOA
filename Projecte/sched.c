@@ -12,6 +12,7 @@ extern void writeMSR(int msr, int value);
 char initial_stack[KERNEL_STACK_SIZE]; // Space for the initial system stack
 struct list_head readyqueue;
 struct list_head blocked;
+struct list_head blockedIO;
 int latestPID;
 int quantum;
 
@@ -135,6 +136,7 @@ void init_sched()
 {
 	INIT_LIST_HEAD(&readyqueue); //declaración queue para procesos en ready
 	INIT_LIST_HEAD(&blocked);
+	INIT_LIST_HEAD(&blockedIO);
 }
 
 /* get_DIR - Returns the Page Directory address for task 't' */

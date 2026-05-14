@@ -8,6 +8,7 @@
 #include <io.h>
 #include <sched.h>
 #include <devices.h>
+#include <list.h>
 
 #include <zeos_interrupt.h>
 
@@ -136,15 +137,15 @@ void keyboard_routine() {
         return; // cbuffer lleno
       }
       // Desbloquear un proceso bloqueado si los hay
-      if(!list_empty(&blocked))
+      if(!list_empty(&blockedIO))
       {
-        struct list_head *blocked_task_list = list_first(&blocked);
-        struct task_struct *blocked_task = list_head_to_task_struct(blocked_task_list);
+        struct list_head *blocked_task_list = list_first(&blockedIO);
+        struct task_struct *blocked_task = list_entry(blocked_task_list, struct task_struct, listIO);
         
         // Cambiar estado a READY y mover a readyqueue
         blocked_task->status = ST_READY;
-        list_del(blocked_task_list);
-        list_add_tail(blocked_task_list, &readyqueue);
+        //list_del(blocked_task_list); //SE HACE EN SYS_READ PA QUE ESPERE HASTA LEER TODO ANTES DE CAMBIAR DE PROC LECTOR
+        list_add_tail(&(blocked_task->list), &readyqueue);
       }
 			printc_xy(0,0,ascii_char);
 		} else {

@@ -22,9 +22,16 @@ int __attribute__ ((__section__(".text.main")))
 		WR 							         RD
 	
 	*/
-
-	char *msg = "\nEsto es un mensaje.\n\n\n\n---------> THIS WAS PRINTED IN USER MODE <---------\n";
-	write(1, msg, 76);
+	write(1,"\n",1);
+	for(int y = 0; y<25 ; y++)
+	{
+		for(int x = 0; x<80 ; x++)
+		{
+			write(1, " ", 1);
+		}
+	}
+	char *msg = "---------> USER MODE <---------\n";
+	write(1, msg, 33);
 	//write(1,msg,-1); //Triggers error write
 	//int pid = fork(); 
 	char ublockBuffer[32];
@@ -73,10 +80,14 @@ int __attribute__ ((__section__(".text.main")))
 	write(1,"\n----------------------\n",24);
 	char output[10];
 	write(1,"TEST READ: INPUT 10 CHARS\n",27);
+	pid = fork();
+	itoa(getpid(),buff);
+	write(1,buff,strlen(buff));
 	while(1){
 		read(&output,10);
-		write(1,"\n",1);
 		write(1,output,10);
-		write(1,"\n",1);
+		itoa(getpid(),buff);
+		write(1,buff,strlen(buff));
+		write(1," \n",1);
 	}
 }

@@ -4,7 +4,6 @@
 #include <list.h>
 
 // Queue for blocked processes in I/O 
-//struct list_head blocked;
 struct circular_buffer cbuffer;
 
 int sys_write_console(char *buffer,int size)
