@@ -80,14 +80,17 @@ int __attribute__ ((__section__(".text.main")))
 	write(1,"\n----------------------\n",24);
 	char output[10];
 	write(1,"TEST READ: INPUT 10 CHARS\n",27);
-	pid = fork();
-	itoa(getpid(),buff);
-	write(1,buff,strlen(buff));
 	while(1){
-		read(&output,10);
+		pid = fork();
+		if(pid != 0){
+			itoa(getpid(),buff);
+			write(1,buff,strlen(buff));
+			block();}
+		//SI LLEGA 36 TA MAL
+		/*read(&output,10);
 		write(1,output,10);
 		itoa(getpid(),buff);
 		write(1,buff,strlen(buff));
-		write(1," \n",1);
+		write(1," \n",1);*/
 	}
 }

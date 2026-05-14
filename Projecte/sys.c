@@ -189,15 +189,15 @@ int sys_fork()
 	set_ss_pag(SPT,child_upt_frame,child_upt_frame,0);
 	set_cr3(get_DIR(parent));
     
-    child->task.dir_pages_baseAddr[1].entry = 0;
-    child->task.dir_pages_baseAddr[1].bits.pbase_addr = child_upt_frame;
-    child->task.dir_pages_baseAddr[1].bits.present = 1;
-    child->task.dir_pages_baseAddr[1].bits.user = 1;
-    child->task.dir_pages_baseAddr[1].bits.rw = 1;	
+    child->task.dir_pages_baseAddr[2].entry = 0;
+    child->task.dir_pages_baseAddr[2].bits.pbase_addr = child_upt_frame;
+    child->task.dir_pages_baseAddr[2].bits.present = 1;
+    child->task.dir_pages_baseAddr[2].bits.user = 1;
+    child->task.dir_pages_baseAddr[2].bits.rw = 1;	
 
     // Obtener punteros a las tablas físicas
-    page_table_entry *parent_PT = (page_table_entry *) (parent->dir_pages_baseAddr[1].bits.pbase_addr << 12);
-    page_table_entry *child_PT  = (page_table_entry *) (child->task.dir_pages_baseAddr[1].bits.pbase_addr << 12);
+    page_table_entry *parent_PT = (page_table_entry *) (parent->dir_pages_baseAddr[2].bits.pbase_addr << 12);
+    page_table_entry *child_PT  = (page_table_entry *) (child->task.dir_pages_baseAddr[2].bits.pbase_addr << 12);
 
     // Herencia de código, padre e hijo lo comparten
     for (int i = 0; i < NUM_PAG_CODE; i++) {
@@ -225,7 +225,7 @@ int sys_fork()
 		int temp_logical_page = NUM_PAG_CODE + NUM_PAG_DATA + 1; // pagina de memoria del padre q no use (Uso la siguiente despues de datos)
 		
 		set_ss_pag(parent_PT,temp_logical_page, new_frame, 1); // se linka la nueva logica del hijo a una vacia del padre para poder acceder
-				
+
 		//se copian los datos de las paginas del padre a la temporal q apunta a la fisica del hijo.
 		copy_data((void*)((PAG_LOG_INIT_DATA + i) << 12),
 		(void*)(L_USER_START + ((temp_logical_page) << 12)), PAGE_SIZE);
@@ -269,6 +269,9 @@ int sys_read(char* b, int maxchars)
     if (maxchars == 0) return 0;
 	
 	int chars_read = 0;
+	
+	if(maxchars>1024)
+		maxchars = 1024;
 	
 	while(chars_read < maxchars)
 	{

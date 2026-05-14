@@ -76,6 +76,11 @@ void init_task1(void)
 	page_table_entry *OsAddress = (page_table_entry *)(Os_frame << 12);
 	clear_page_table(OsAddress);
 
+	//Nueva TP? -- Revisar q esto funcione correctamente --
+	int OS2_frame = alloc_frame();
+	page_table_entry *OS2Address = (page_table_entry *)(OS2_frame << 12);
+	clear_page_table(OS2Address);
+
 	//TP Usuario
 	int Us_frame = alloc_frame();
 	page_table_entry *UsAdress = (page_table_entry *)(Us_frame << 12);
@@ -87,6 +92,7 @@ void init_task1(void)
 	//Traducciones fisica logica pa mas adelante
 	set_ss_pag(OsAddress,Dir,Dir,0);
 	set_ss_pag(OsAddress,Os_frame,Os_frame,0);
+	set_ss_pag(OsAddress,OS2_frame,OS2_frame,0);
 	set_ss_pag(OsAddress,Us_frame,Us_frame,0);
 
 	// Asignar SO a la primera entrada DIR
@@ -96,12 +102,20 @@ void init_task1(void)
 	DirAddress[0].bits.rw = 1;
 	DirAddress[0].bits.user = 0;
 
-	//Asignar USER a la segunda entrada DIR
+	// Asignar SO a la primera entrada DIR
 	DirAddress[1].entry = 0;
-	DirAddress[1].bits.pbase_addr = Us_frame;
+	DirAddress[1].bits.pbase_addr = OS2_frame;
 	DirAddress[1].bits.present = 1;
 	DirAddress[1].bits.rw = 1;
-	DirAddress[1].bits.user = 1;
+	DirAddress[1].bits.user = 0;
+
+	//Asignar USER a la segunda entrada DIR
+	DirAddress[2].entry = 0;
+	DirAddress[2].bits.pbase_addr = Us_frame;
+	DirAddress[2].bits.present = 1;
+	DirAddress[2].bits.rw = 1;
+	DirAddress[2].bits.user = 1;
+
 
 	//Alocatar el Process Control Block(lo q guarda estado de cada proceso diria)
 	union task_union *task1 = (union task_union *)(alloc_frame() << 12);
