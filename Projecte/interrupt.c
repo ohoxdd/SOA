@@ -146,6 +146,7 @@ void keyboard_routine() {
         blocked_task->status = ST_READY;
         //list_del(blocked_task_list); //SE HACE EN SYS_READ PA QUE ESPERE HASTA LEER TODO ANTES DE CAMBIAR DE PROC LECTOR
         list_add_tail(&(blocked_task->list), &readyqueue);
+        sched_next_rr();
       }
 			printc_xy(0,0,ascii_char);
 		} else {

@@ -300,3 +300,25 @@ int sys_read(char* b, int maxchars)
 	list_del(blocked_task_list);//lo quito de blockedIO, respetando FIFO en lectura de chars
 	return 1;
 }
+	
+
+int sys_set_color(int fg, int bg)
+{
+	if(fg<0 || fg>15 || bg<0 || bg>15)
+		return -EINVAL;
+
+	set_bg(bg);
+	set_fg(fg);
+
+	return 1;
+}
+
+int sys_gotoxy(int x, int y)
+{
+	if(x<0 || x>79 || y<0 || y>24)
+		return -EINVAL;
+	
+	set_xy(x,y);
+
+	return 1;
+}

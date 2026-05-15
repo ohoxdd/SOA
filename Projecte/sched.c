@@ -35,6 +35,8 @@ void init_idle (void)
 	page_table_entry *DirAddress = (page_table_entry *)(Dir << 12); //la dirección son los 20B de mayor peso con 0 en los 12 de menor peso
 	clear_page_table(DirAddress);
 	DirAddress[0].entry = init_task->dir_pages_baseAddr[0].entry;
+	DirAddress[1].entry = init_task->dir_pages_baseAddr[1].entry;
+
 
 	union task_union *idle = (union task_union *)(alloc_frame() << 12);
 
@@ -42,8 +44,9 @@ void init_idle (void)
 
 	//direccio de la TP del OS, la pillamos del Dir de task1.
 	page_table_entry *OsAddress = (page_table_entry *) (init_task->dir_pages_baseAddr[0].bits.pbase_addr << 12);
-
+	page_table_entry *Os2Address = (page_table_entry *) (init_task->dir_pages_baseAddr[1].bits.pbase_addr << 12);
 	set_ss_pag(OsAddress,pcb_frame,pcb_frame,0);
+	set_ss_pag(Os2Address,pcb_frame,pcb_frame,0);
 
 	//En el stack se pone cpu_idle como la @ donde saltar, y 0 donde apunta el k_esp
 	idle->stack[KERNEL_STACK_SIZE - 1] = cpu_idle;
@@ -76,7 +79,7 @@ void init_task1(void)
 	page_table_entry *OsAddress = (page_table_entry *)(Os_frame << 12);
 	clear_page_table(OsAddress);
 
-	//Nueva TP
+	//TP OS2
 	int OS2_frame = alloc_frame();
 	page_table_entry *OS2Address = (page_table_entry *)(OS2_frame << 12);
 	clear_page_table(OS2Address);
@@ -94,6 +97,11 @@ void init_task1(void)
 	set_ss_pag(OsAddress,Os_frame,Os_frame,0);
 	set_ss_pag(OsAddress,OS2_frame,OS2_frame,0);
 	set_ss_pag(OsAddress,Us_frame,Us_frame,0);
+
+	set_ss_pag(OS2Address,Dir,Dir,0);
+	set_ss_pag(OS2Address,Os_frame,Os_frame,0);
+	set_ss_pag(OS2Address,OS2_frame,OS2_frame,0);
+	set_ss_pag(OS2Address,Us_frame,Us_frame,0);
 
 	// Asignar SO a la primera entrada DIR
 	DirAddress[0].entry = 0;
@@ -121,6 +129,7 @@ void init_task1(void)
 	union task_union *task1 = (union task_union *)(alloc_frame() << 12);
 	int pcb_frame = ((unsigned int) task1) >> 12;
 	set_ss_pag(OsAddress, pcb_frame, pcb_frame, 0);
+	set_ss_pag(OS2Address, pcb_frame, pcb_frame,0);
 
 	task1->task.PID = 1;
 	task1->task.quantum = INIT_QUANTUM;
@@ -135,7 +144,7 @@ void init_task1(void)
 	//esp apunta al nuevo max
 	tss.esp0 = (unsigned long)(task1) + KERNEL_STACK_SIZE * sizeof(unsigned long);
 
-	//Se actualiza con writeMSR para SysEnter
+	//Se actualiza con writeMSR para sysenter
 	writeMSR(0x175,tss.esp0);
 
 	task1->task.dir_pages_baseAddr = DirAddress;
@@ -170,9 +179,9 @@ void inner_task_switch(union task_union *new)
 	
 	tss.esp0 = (unsigned long)(new) + KERNEL_STACK_SIZE * sizeof(unsigned long);
 	writeMSR(0x175,tss.esp0);
+	set_cr3(new->task.dir_pages_baseAddr);
 	struct task_struct *old_task = current();
 	task_switch_part2(&current()->kernel_esp , new->task.kernel_esp);
-	set_cr3(new->task.dir_pages_baseAddr);
 }
 
 struct task_struct *list_head_to_task_struct(struct list_head *l)

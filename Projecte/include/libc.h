@@ -18,6 +18,8 @@ void exit(void);
 void block(void);
 int unblock(int pid);
 int read(char* b, int maxchar);
+int set_color(int fg, int bg);
+int gotoxy(int x, int y);
 
 int strlen(char *a);
 

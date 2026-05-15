@@ -194,7 +194,7 @@ ENTRY(read)
 	movl 8(%ebp), %edx //char* b pasado como parametro
 	movl 12(%ebp), %ecx //int maxchars
 
-	movl $7, %eax
+	movl $7, %eax// syscall sys_read
 	pushl $ret_read
 
 	pushl %ebp
@@ -212,5 +212,62 @@ ret_read:
 	movl $-1, %eax
 
 read_end:
+	popl %ebp
+	ret
+
+
+ENTRY(set_color)
+	pushl %ebp
+	movl %esp, %ebp
+
+	movl 8(%ebp), %edx //foreground
+	movl 12(%ebp), %ecx //background
+
+	movl $8, %eax //syscall sys_set_color
+	pushl $ret_set_color
+
+	pushl %ebp
+	movl %esp, %ebp
+	sysenter
+
+ret_set_color:
+	pop %ebp
+	addl $4, %esp
+
+	cmpl $0, %eax
+	jge set_color_end
+	neg %eax
+	movl %eax, errno
+	movl $-1, %eax
+
+set_color_end:
+	popl %ebp
+	ret
+
+ENTRY(gotoxy)
+	pushl %ebp
+	movl %esp, %ebp
+
+	movl 8(%ebp), %edx //x
+	movl 12(%ebp), %ecx //y
+
+	movl $9, %eax //syscall sys_gotoxy
+	pushl $ret_gotoxy
+
+	pushl %ebp
+	movl %esp, %ebp
+	sysenter
+
+ret_gotoxy:
+	pop %ebp
+	addl $4, %esp
+
+	cmpl $0, %eax
+	jge gotoxy_end
+	neg %eax
+	movl %eax, errno
+	movl $-1, %eax
+
+gotoxy_end:
 	popl %ebp
 	ret
