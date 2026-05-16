@@ -273,6 +273,7 @@ int sys_read(char* b, int maxchars)
 {
 	if (maxchars < 0) return -EINVAL;
     if (maxchars == 0) return 0;
+	if(b == 0) return -EINVAL;
 	
 	int chars_read = 0;
 	
