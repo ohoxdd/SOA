@@ -21,6 +21,9 @@ Byte phys_mem[TOTAL_PAGES];
 #define FREE_FRAME 0
 #define USED_FRAME 1
 
+/* Kernel page tables for mapping extended memory (0-2047 frames) */
+page_table_entry* kernel_page_tables[KERNEL_PAGE_TABLES];
+
 
 /* SEGMENTATION */
 /* Memory segements description table */
@@ -88,6 +91,15 @@ void set_kernel_pages (page_table_entry* process_PT)
   show_PT_range(process_PT, first_kernel, last_kernel-first_kernel+1, " Reserved for kernel memory\n");
   show_PT_range(process_PT, 0x90, 1, " Reserved for GDT\n");
   show_PT_range(process_PT, 0xb8, 1, " Reserved for Screen buffer\n");
+}
+
+/* init_kernel_page_tables - Initialize kernel page table array pointers */
+void init_kernel_page_tables(page_table_entry* pt0, page_table_entry* pt1)
+{
+    kernel_page_tables[0] = pt0;
+    if (KERNEL_PAGE_TABLES > 1) {
+        kernel_page_tables[1] = pt1;
+    }
 }
 
 /* Enable paging, modifying the CR0 register */
@@ -236,5 +248,22 @@ void del_ss_pag(page_table_entry *PT, unsigned logical_page)
 /* get_frame - Returns the physical frame associated to page 'logical_page' */
 unsigned int get_frame (page_table_entry *PT, unsigned int logical_page){
      return PT[logical_page].bits.pbase_addr; 
+}
+
+/* Mapea  automaticamente, la división decide q tabla se usa, el modulo elige sobre 1024  */
+void set_kernel_pag(unsigned int frame)
+{
+    int table_index = frame / PAGE_TABLE_ENTRIES;
+    int entry_index = frame % PAGE_TABLE_ENTRIES;
+    
+    if (table_index >= KERNEL_PAGE_TABLES) { // No deberia pasar
+        return;
+    }
+    
+    if (kernel_page_tables[table_index] == NULL) { // No deberia pasar
+        return;
+    }
+    
+    set_ss_pag(kernel_page_tables[table_index], entry_index, frame, 0);
 }
 

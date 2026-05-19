@@ -170,16 +170,14 @@ int sys_fork()
 		return -ENOMEM; //devuelve error si no queda espacio para otro proceso
 	}
 	child = (union task_union *) (Childframe << 12);
-	set_ss_pag(SPT, Childframe, Childframe, 0);
-	set_ss_pag(SPT2,Childframe, Childframe, 0);
+	set_kernel_pag(Childframe);
 	set_cr3(get_DIR(parent));
 	copy_data(parent, child, sizeof(union task_union)); //se copia tol union de padre al frame del hijo
 
 	/**/
     int child_pd_frame = alloc_frame();
     if (child_pd_frame < 0) {return -ENOMEM; }
-	set_ss_pag(SPT,child_pd_frame,child_pd_frame,0);
-	set_ss_pag(SPT2,child_pd_frame,child_pd_frame,0);
+	set_kernel_pag(child_pd_frame);
 	set_cr3(get_DIR(parent));
     child->task.dir_pages_baseAddr = (page_table_entry *) (child_pd_frame << 12);
     clear_page_table(child->task.dir_pages_baseAddr);
@@ -191,8 +189,7 @@ int sys_fork()
     //Asignar Tabla de Páginas de Usuario
     int child_upt_frame = alloc_frame();
     if (child_upt_frame < 0) {return -ENOMEM;}
-	set_ss_pag(SPT,child_upt_frame,child_upt_frame,0);
-	set_ss_pag(SPT2,child_upt_frame,child_upt_frame,0);
+	set_kernel_pag(child_upt_frame);
 	set_cr3(get_DIR(parent));
     
     child->task.dir_pages_baseAddr[2].entry = 0;
@@ -271,9 +268,9 @@ int sys_fork()
 
 int sys_read(char* b, int maxchars)
 {
+	if(b == 0) return -EINVAL;
 	if (maxchars < 0) return -EINVAL;
     if (maxchars == 0) return 0;
-	if(b == 0) return -EINVAL;
 	
 	int chars_read = 0;
 	
@@ -299,7 +296,7 @@ int sys_read(char* b, int maxchars)
 	
 	struct list_head *blocked_task_list = list_first(&blockedIO);
 	list_del(blocked_task_list);//lo quito de blockedIO, respetando FIFO en lectura de chars
-	return 1;
+	return chars_read;
 }
 	
 

@@ -45,8 +45,7 @@ void init_idle (void)
 	//direccio de la TP del OS, la pillamos del Dir de task1.
 	page_table_entry *OsAddress = (page_table_entry *) (init_task->dir_pages_baseAddr[0].bits.pbase_addr << 12);
 	page_table_entry *Os2Address = (page_table_entry *) (init_task->dir_pages_baseAddr[1].bits.pbase_addr << 12);
-	set_ss_pag(OsAddress,pcb_frame,pcb_frame,0);
-	set_ss_pag(Os2Address,pcb_frame,pcb_frame,0);
+	set_kernel_pag(pcb_frame);
 
 	//En el stack se pone cpu_idle como la @ donde saltar, y 0 donde apunta el k_esp
 	idle->stack[KERNEL_STACK_SIZE - 1] = cpu_idle;
@@ -92,16 +91,14 @@ void init_task1(void)
 	set_kernel_pages(OsAddress);
 	set_user_pages(UsAdress);
 
-	//Traducciones fisica logica pa mas adelante
-	set_ss_pag(OsAddress,Dir,Dir,0);
-	set_ss_pag(OsAddress,Os_frame,Os_frame,0);
-	set_ss_pag(OsAddress,OS2_frame,OS2_frame,0);
-	set_ss_pag(OsAddress,Us_frame,Us_frame,0);
+	/* Initialize the kernel page tables array for extended memory support */
+	init_kernel_page_tables(OsAddress, OS2Address);
 
-	set_ss_pag(OS2Address,Dir,Dir,0);
-	set_ss_pag(OS2Address,Os_frame,Os_frame,0);
-	set_ss_pag(OS2Address,OS2_frame,OS2_frame,0);
-	set_ss_pag(OS2Address,Us_frame,Us_frame,0);
+	/* Traducciones fisica logica pa mas adelante - use set_kernel_pag for kernel structures */
+	set_kernel_pag(Dir);
+	set_kernel_pag(Os_frame);
+	set_kernel_pag(OS2_frame);
+	set_kernel_pag(Us_frame);
 
 	// Asignar SO a la primera entrada DIR
 	DirAddress[0].entry = 0;
@@ -128,8 +125,7 @@ void init_task1(void)
 	//Alocatar el Process Control Block(lo q guarda estado de cada proceso diria)
 	union task_union *task1 = (union task_union *)(alloc_frame() << 12);
 	int pcb_frame = ((unsigned int) task1) >> 12;
-	set_ss_pag(OsAddress, pcb_frame, pcb_frame, 0);
-	set_ss_pag(OS2Address, pcb_frame, pcb_frame,0);
+	set_kernel_pag(pcb_frame);
 
 	task1->task.PID = 1;
 	task1->task.quantum = INIT_QUANTUM;

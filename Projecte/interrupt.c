@@ -140,13 +140,14 @@ void keyboard_routine() {
       if(!list_empty(&blockedIO))
       {
         struct list_head *blocked_task_list = list_first(&blockedIO);
-        struct task_struct *blocked_task = list_entry(blocked_task_list, struct task_struct, listIO);
-        
-        // Cambiar estado a READY y mover a readyqueue
-        blocked_task->status = ST_READY;
-        //list_del(blocked_task_list); //SE HACE EN SYS_READ PA QUE ESPERE HASTA LEER TODO ANTES DE CAMBIAR DE PROC LECTOR
-        list_add_tail(&(blocked_task->list), &readyqueue);
-        sched_next_rr();
+        if (blocked_task_list != NULL) //Por si acaso
+        {
+          struct task_struct *blocked_task = list_entry(blocked_task_list, struct task_struct, listIO);
+          
+          // Cambiar estado a READY y mover a readyqueue
+          blocked_task->status = ST_READY;
+          list_add_tail(&(blocked_task->list), &readyqueue);
+        }
       }
 			printc_xy(0,0,ascii_char);
 		} else {

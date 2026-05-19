@@ -36,4 +36,8 @@ void setTSS();
 void set_ss_pag(page_table_entry *PT, unsigned page,unsigned frame, int user);
 void del_ss_pag(page_table_entry *PT, unsigned page);
 unsigned int get_frame(page_table_entry *PT, unsigned int page);
+void set_kernel_pag(unsigned int frame);
+void init_kernel_page_tables(page_table_entry* pt0, page_table_entry* pt1);
+
+extern page_table_entry* kernel_page_tables[KERNEL_PAGE_TABLES];
 #endif  /* __MM_H__ */

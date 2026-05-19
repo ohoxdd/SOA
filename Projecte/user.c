@@ -74,7 +74,7 @@ main(void)
     if (result < 0) {
         write(1, "PASS: read(0, 5) returned -EFAULT\n", 38);
     } else {
-        write(1, "FAIL: read(0) should return error\n", 37);
+        write(1, "FAIL: read(NULL) should return error\n", 37);
     }
     wait(100000000);
     gotoxy(0,0);
@@ -84,9 +84,9 @@ main(void)
     int pid = fork();
     int proc_count = 0;
 
-    while(pid > 0 && proc_count < 2)
+    while(pid >= 0)
     {
-        if(pid != 0)
+        if(pid == 0)
         {
             write(1,"Process PID: ",13);
             itoa(getpid(),buff);
@@ -97,6 +97,9 @@ main(void)
         proc_count++;
         pid = fork();
     }
+    write(1,"ENDING PID IS: ",16);
+    itoa(getpid(),buff);
+    write(1,buff,strlen(buff));
     
     write(1, "\n--- ERROR CASES M3 ---\n", 24);
     write(1, "TOTAL_PAGES = 2048 configured\n", 31);
