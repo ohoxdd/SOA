@@ -50,10 +50,19 @@ write_end:
 ENTRY(gettime)
 	pushl %ebp
 	movl %esp, %ebp
-
-	movl $10, %eax // id gettime
-	int $0x80
 	
+	movl $10, %eax//10 == sys_gettime
+	pushl $return_gettime
+
+	pushl %ebp // fake dynamic link
+	movl %esp, %ebp
+
+	sysenter
+
+return_gettime:
+	popl %ebp
+	addl $4, %esp
+
 	cmpl $0, %eax
 	jge gettime_end
 
@@ -64,6 +73,7 @@ ENTRY(gettime)
 gettime_end:
 	popl %ebp
 	ret
+
 
 ENTRY(getpid)
 	pushl %ebp
