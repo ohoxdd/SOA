@@ -2,6 +2,7 @@
  * mm.c - Memory Management: Paging & segment memory management
  */
 
+#include "include/mm.h"
 #include <types.h>
 #include <mm.h>
 #include <segment.h>
@@ -118,6 +119,7 @@ void init_mm()
   last_kernel = ((KERNEL_START + *p_sys_size + *p_usr_size)>>12) + 1;
 
   init_frames();
+	alloc_shm_frames();
 
 }
 /***********************************************/
@@ -267,3 +269,22 @@ void set_kernel_pag(unsigned int frame)
     set_ss_pag(kernel_page_tables[table_index], entry_index, frame, 0);
 }
 
+struct shm_frame shm_frames[SHM_MAX_REGIONS];
+int alloc_shm_frames() {
+		for (int i = 0; i < SHM_MAX_REGIONS; i++) {
+				int frame = alloc_frame();
+				if (frame < 0) {
+						for (--i; i >= 0; i--) 
+								free_frame(shm_frames[i].frame);
+						return -1;
+				}
+
+				struct shm_frame shared_frame;
+				shared_frame.frame = frame;
+				shared_frame.refcount = 0;
+
+				shm_frames[i] = shared_frame;
+		}
+
+		return 0;
+}

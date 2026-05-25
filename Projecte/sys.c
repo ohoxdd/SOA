@@ -1,8 +1,10 @@
 /*
  * sys.c - Syscalls implementation
  */
+#include "include/mm_address.h"
 #include <devices.h>
 
+#include <threads.h>
 #include <utils.h>
 
 #include <io.h>
@@ -319,4 +321,35 @@ int sys_gotoxy(int x, int y)
 	set_xy(x,y);
 
 	return 1;
+}
+
+void* sys_shmat(int id, void* addr) {
+		if (id < 0 || id >= SHM_MAX_REGIONS) 
+				return (void*)-EINVAL;
+
+		if (addr != NULL && ((unsigned int)addr &0xFFF))
+				return (void*)-EINVAL;
+
+		page_table_entry *user_PT = (page_table_entry*)
+				(current()->dir_pages_baseAddr[2].bits.pbase_addr << 12);
+		
+		int entry;
+		if (addr == NULL) {
+				// Buscar entrada libre (pasadas las 28 pag de code+data)
+				for (entry = SHM_PAGES_START; entry < 1024; entry++) {
+						if (user_PT[entry].entry == 0) break;
+				}
+				if (entry >= 1024) return (void*)-ENOMEM;
+		
+		} else {
+				// Calcular entry desde addr virtual
+        entry = ((unsigned int)addr >> 12) & 0x3FF;
+        if (user_PT[entry].entry != 0)
+            return (void*)-EINVAL;
+		}
+
+		set_ss_pag(user_PT, entry, shm_frames[id].frame, 1);
+		shm_frames[id].refcount++;
+
+		return (void*)(L_USER_START + (entry << 12));
 }

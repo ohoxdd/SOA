@@ -281,3 +281,32 @@ ret_gotoxy:
 gotoxy_end:
 	popl %ebp
 	ret
+
+
+ENTRY(shmat)
+	pushl %ebp
+	movl %esp, %ebp
+
+	movl 8(%ebp), %edx //id
+	movl 12(%ebp), %ecx //addr
+
+	movl $3, %eax //syscall sys_shmat 
+	pushl $ret_shmat
+
+	pushl %ebp
+	movl %esp, %ebp
+	sysenter
+
+ret_shmat:
+	pop %ebp
+	addl $4, %esp
+
+	cmpl $0, %eax
+	jge shmat_end 
+	neg %eax
+	movl %eax, errno
+	movl $-1, %eax
+
+shmat_end:
+	popl %ebp
+	ret
