@@ -1,6 +1,7 @@
 /*
  * sys.c - Syscalls implementation
  */
+#include "include/mm.h"
 #include "include/mm_address.h"
 #include <devices.h>
 
@@ -352,4 +353,45 @@ void* sys_shmat(int id, void* addr) {
 		shm_frames[id].refcount++;
 
 		return (void*)(L_USER_START + (entry << 12));
+}
+
+int sys_shmdt(void *addr) {
+		if (addr != NULL && ((unsigned int)addr &0xFFF))
+				return -EINVAL;
+		
+		page_table_entry *user_PT = (page_table_entry*)
+				(current()->dir_pages_baseAddr[2].bits.pbase_addr << 12);
+    int entry = ((unsigned int)addr >> 12) & 0x3FF;
+		
+		// la pagina no esta mapeada
+		if (!user_PT[entry].entry) 
+				return -EINVAL;
+		
+		unsigned int frame = get_frame(user_PT, entry);
+		int id;
+		for (id = 0; id < SHM_MAX_REGIONS; id++) 
+				if (shm_frames[id].frame == frame) break;
+		if (id >= SHM_MAX_REGIONS) return -EINVAL; // no esta compartida
+		
+		del_ss_pag(user_PT, entry);
+		shm_frames[id].refcount--;
+
+		if (!shm_frames[id].refcount && shm_frames[id].pending_clear) {
+				set_kernel_pag(frame);
+				set_cr3(get_DIR(current()));
+				unsigned int *p = (unsigned int*)(frame << 12);
+				for (int i = 0; i < 1024; i++) p[i] = 0;
+				shm_frames[id].pending_clear = 0;
+		}
+
+		return 0;
+}
+
+int sys_shmrm(int id) {
+		if (id < 0 || id >= SHM_MAX_REGIONS) 
+				return -EINVAL;
+		
+		shm_frames[id].pending_clear = 1;
+
+		return 0;
 }

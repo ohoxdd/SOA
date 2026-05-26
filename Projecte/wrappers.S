@@ -290,7 +290,7 @@ ENTRY(shmat)
 	movl 8(%ebp), %edx //id
 	movl 12(%ebp), %ecx //addr
 
-	movl $3, %eax //syscall sys_shmat 
+	movl $11, %eax //syscall sys_shmat 
 	pushl $ret_shmat
 
 	pushl %ebp
@@ -308,5 +308,60 @@ ret_shmat:
 	movl $-1, %eax
 
 shmat_end:
+	popl %ebp
+	ret
+
+
+ENTRY(shmdt)
+	pushl %ebp
+	movl %esp, %ebp
+
+	movl 8(%ebp), %edx //void *addr
+
+	movl $12, %eax //syscall sys_shmdt 
+	pushl $ret_shmdt
+
+	pushl %ebp
+	movl %esp, %ebp
+	sysenter
+
+ret_shmdt:
+	pop %ebp
+	addl $4, %esp
+
+	cmpl $0, %eax
+	jge shmdt_end 
+	neg %eax
+	movl %eax, errno
+	movl $-1, %eax
+
+shmdt_end:
+	popl %ebp
+	ret
+
+ENTRY(shmrm)
+	pushl %ebp
+	movl %esp, %ebp
+
+	movl 8(%ebp), %edx	// int id
+
+	movl $13, %eax //syscall sys_shmrm 
+	pushl $ret_shmrm
+
+	pushl %ebp
+	movl %esp, %ebp
+	sysenter
+
+ret_shmrm:
+	pop %ebp
+	addl $4, %esp
+
+	cmpl $0, %eax
+	jge shmrm_end 
+	neg %eax
+	movl %eax, errno
+	movl $-1, %eax
+
+shmrm_end:
 	popl %ebp
 	ret

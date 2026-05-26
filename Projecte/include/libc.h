@@ -21,6 +21,8 @@ int read(char* b, int maxchar);
 int set_color(int fg, int bg);
 int gotoxy(int x, int y);
 void *shmat(int id, void* addr);
+int shmdt(void* addr);
+int shmrm(int id);
 
 int strlen(char *a);
 

@@ -282,6 +282,7 @@ int alloc_shm_frames() {
 				struct shm_frame shared_frame;
 				shared_frame.frame = frame;
 				shared_frame.refcount = 0;
+				shared_frame.pending_clear = 0;
 
 				shm_frames[i] = shared_frame;
 		}

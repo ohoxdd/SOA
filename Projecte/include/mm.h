@@ -48,6 +48,7 @@ int alloc_shm_frames(void);
 struct shm_frame {
 		int frame;
 		int refcount;
+		int pending_clear;
 };
 
 extern struct shm_frame shm_frames[SHM_MAX_REGIONS];
