@@ -345,7 +345,8 @@ main(void)
             child_data[0] = 0xCAFE;
             child_data[1] = 1;
             write(1, "child: wrote 0xCAFE, blocking...\n", 33);
-						exit();
+	    block();
+	    exit();
         } else {
             int spins = 0;
             while (shm_data[1] == 0 && spins < 20000000) spins++;

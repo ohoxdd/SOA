@@ -5,7 +5,6 @@
 #include "include/mm_address.h"
 #include <devices.h>
 
-#include <threads.h>
 #include <utils.h>
 
 #include <io.h>
@@ -81,6 +80,13 @@ int ret_from_fork() {
 	return 0;
 }
 
+int shm_frame_to_id(unsigned int frame) {
+
+	for (int i = 0; i < SHM_MAX_REGIONS; i++) 
+		if (shm_frames[i].frame == frame) return i;
+	return -1;
+}
+
 void sys_exit()//elimina current y alibera todos sus recursos
 {
 	struct task_struct * pcb = current();
@@ -97,6 +103,23 @@ void sys_exit()//elimina current y alibera todos sus recursos
 		int frame = get_frame(PT,i);
 		free_frame(frame);
 		del_ss_pag(PT,i);
+	}
+	for (int id = SHM_PAGES_START; id < 1024; id++) {
+		if (PT[id].entry != 0) {
+			int frame = get_frame(PT, id);
+			int shm_id = shm_frame_to_id(frame);
+			if (shm_id >= 0) {
+				del_ss_pag(PT, id);
+				shm_frames[id].refcount--;
+				if (!shm_frames[id].refcount && shm_frames[id].pending_clear) {
+					set_kernel_pag(frame);
+					set_cr3(get_DIR(current()));
+					unsigned int *p = (unsigned int*)(frame << 12);
+					for (int i = 0; i < 1024; i++) p[i] = 0;
+					shm_frames[id].pending_clear = 0;
+				}
+			} 
+		}	
 	}
 	pcb->dir_pages_baseAddr = NULL;
 
@@ -158,6 +181,7 @@ int sys_unblock(int pid)
 	}
 	return -1;
 }
+
 
 
 int sys_fork()
@@ -239,6 +263,19 @@ int sys_fork()
 		del_ss_pag(parent_PT,temp_logical_page); // se elimina la traducción a fisica del hijo
 		set_cr3(get_DIR(parent));
 	}
+
+	// Heredar paginas compartidas
+	for (int i = SHM_PAGES_START; i < 1024; i++) {
+		if (parent_PT[i].entry != 0) {
+			int frame = get_frame(parent_PT, i);
+			int shm_id = shm_frame_to_id(frame);
+			if (shm_id >= 0) {
+				child_PT[i] = parent_PT[i];
+				shm_frames[i].refcount++;
+			}
+		}
+	}
+
 	latestPID++;
 	child->task.PID = latestPID;
 	child->task.quantum = INIT_QUANTUM;
@@ -368,10 +405,8 @@ int sys_shmdt(void *addr) {
 				return -EINVAL;
 		
 		unsigned int frame = get_frame(user_PT, entry);
-		int id;
-		for (id = 0; id < SHM_MAX_REGIONS; id++) 
-				if (shm_frames[id].frame == frame) break;
-		if (id >= SHM_MAX_REGIONS) return -EINVAL; // no esta compartida
+		int id = shm_frame_to_id(frame);
+		if (id < 0) return -EINVAL; // no esta compartida
 		
 		del_ss_pag(user_PT, entry);
 		shm_frames[id].refcount--;
