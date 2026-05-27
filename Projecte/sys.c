@@ -104,6 +104,7 @@ void sys_exit()//elimina current y alibera todos sus recursos
 		free_frame(frame);
 		del_ss_pag(PT,i);
 	}
+
 	for (int id = SHM_PAGES_START; id < 1024; id++) {
 		if (PT[id].entry != 0) {
 			int frame = get_frame(PT, id);
@@ -116,6 +117,8 @@ void sys_exit()//elimina current y alibera todos sus recursos
 					set_cr3(get_DIR(current()));
 					unsigned int *p = (unsigned int*)(frame << 12);
 					for (int i = 0; i < 1024; i++) p[i] = 0;
+				  del_ss_pag(kernel_page_tables[frame / PAGE_TABLE_ENTRIES],
+						frame % PAGE_TABLE_ENTRIES);
 					shm_frames[id].pending_clear = 0;
 				}
 			} 
@@ -416,6 +419,8 @@ int sys_shmdt(void *addr) {
 				set_cr3(get_DIR(current()));
 				unsigned int *p = (unsigned int*)(frame << 12);
 				for (int i = 0; i < 1024; i++) p[i] = 0;
+				del_ss_pag(kernel_page_tables[frame / PAGE_TABLE_ENTRIES],
+						frame % PAGE_TABLE_ENTRIES);
 				shm_frames[id].pending_clear = 0;
 		}
 

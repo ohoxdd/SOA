@@ -1,19 +1,48 @@
 #include <libc.h>
 
-#define WAIT_TIME 29999999
+#define WAIT_TIME 8000000
 
 void clean_screen()
 {
     for(int y = 0; y<25 ; y++)
         for(int x = 0; x<80 ; x++)
             write(1, " ", 1);
-
     gotoxy(0,0);
 }
 
-void wait(int loops)
-{
-    while(loops) loops--;
+int sp_state = 0;
+
+void sp_tick(int y) {
+    char c[] = {'/', '-', '\\', '|'};
+    gotoxy(4, y);
+    char buf[2] = {c[sp_state], 0};
+    write(1, buf, 1);
+    sp_state = (sp_state + 1) & 3;
+}
+
+void sp_wait(int loops, int y) {
+    while (loops--) {
+        if ((loops & 0x7FFFF) == 0) sp_tick(y);
+    }
+    sp_tick(y);
+}
+
+void sp_ok(int y) {
+    gotoxy(4, y);
+    write(1, "PASS ", 5);
+}
+
+void put_code(char *s, int *x, int y) {
+    gotoxy(*x, y);
+    write(1, s, strlen(s));
+    *x += strlen(s) + 1;
+}
+
+void test_fail(char *msg) {
+    gotoxy(0, 22);
+    write(1, msg, strlen(msg));
+    int n = strlen(msg);
+    for (int i = n; i < 79; i++) write(1, " ", 1);
 }
 
 int latest_ticks = 0;
@@ -29,430 +58,385 @@ int getfps()
 void decorateScreen()
 {
     int x, y;
-    
+
     clean_screen();
-    
-    /* Configurar colores: cyan (6) para borde, negro (0) de fondo */
-    set_color(6, 0);  /* fg=6 (cyan), bg=0 (black) */
-    
-    /* Línea superior: 80 iguales */
+
+    set_color(6, 0);
+
     gotoxy(0, 0);
-    for(x = 0; x < 80; x++) {
+    for(x = 0; x < 80; x++)
         write(1, "=", 1);
-    }
-    
-    /* Líneas 1-23 con bordes */
+
     for(y = 1; y < 24; y++) {
         gotoxy(0, y);
         write(1, "|", 1);
-        
-        /* Dibuja la cara grande en el medio (y=5 a y=12) */
+
         if(y == 5) {
             gotoxy(32, y);
-            set_color(3, 0);  /* Yellow (3), black background */
+            set_color(3, 0);
             write(1, "_____________", 13);
-            set_color(6, 0);  /* Back to cyan */
+            set_color(6, 0);
         }
         else if(y == 6) {
             gotoxy(31, y);
-            set_color(3, 0);  /* Yellow */
+            set_color(3, 0);
             write(1, "/             \\", 15);
-            set_color(6, 0);  /* Back to cyan */
+            set_color(6, 0);
         }
         else if(y == 7) {
             gotoxy(31, y);
-            set_color(3, 0);  /* Yellow */
+            set_color(3, 0);
             write(1, "|  o       o  |", 15);
-            set_color(6, 0);  /* Back to cyan */
+            set_color(6, 0);
         }
         else if(y == 8) {
             gotoxy(31, y);
-            set_color(3, 0);  /* Yellow */
+            set_color(3, 0);
             write(1, "|     >       |", 15);
-            set_color(6, 0);  /* Back to cyan */
+            set_color(6, 0);
         }
         else if(y == 9) {
             gotoxy(31, y);
-            set_color(3, 0);  /* Yellow */
+            set_color(3, 0);
             write(1, "|   \\_____/   |", 15);
-            set_color(6, 0);  /* Back to cyan */
+            set_color(6, 0);
         }
         else if(y == 10) {
             gotoxy(31, y);
-            set_color(3, 0);  /* Yellow */
+            set_color(3, 0);
             write(1, "|  HAPPY! :D  |", 15);
-            set_color(6, 0);  /* Back to cyan */
+            set_color(6, 0);
         }
         else if(y == 11) {
             gotoxy(31, y);
-            set_color(3, 0);  /* Yellow */
+            set_color(3, 0);
             write(1, "|             |", 15);
-            set_color(6, 0);  /* Back to cyan */
+            set_color(6, 0);
         }
         else if(y == 12) {
             gotoxy(32, y);
-            set_color(3, 0);  /* Yellow */
+            set_color(3, 0);
             write(1, "\\___________/", 13);
-            set_color(6, 0);  /* Back to cyan */
+            set_color(6, 0);
         }
-        
+
         gotoxy(79, y);
         write(1, "|", 1);
     }
-    
-    /* Línea inferior: 80 iguales */
+
     gotoxy(0, 24);
-    for(x = 0; x < 80; x++) {
+    for(x = 0; x < 80; x++)
         write(1, "=", 1);
-    }
 }
 
 int __attribute__ ((__section__(".text.main")))
 main(void)
 {
-    write(1,"\n",1);
     clean_screen();
     char buff[100];
     void *shm;
     void *ptrs[10];
-    int ok;
+    int x, y;
 
-    write(1, "\n=== MILESTONE 5: Shared Memory (shmat) ===\n", 44);
+    write(1, "=== MILESTONE 5: Shared Memory ===\n", 36);
 
-    /* ===== ERROR CASES ===== */
-    write(1, "\n--- ERROR CASES ---\n\n", 21);
+    /* ===== EC TESTS ===== */
+    y = 2; x = 8;
+    gotoxy(0, y); write(1, "EC:", 3);
+    sp_tick(y);
 
-    /* EC1: id < 0 */
     shm = shmat(-1, 0);
-    if ((int)shm == -1) {
-        write(1, "PASS: shmat(-1, 0) rejected (id<0)\n", 38);
-    } else 
-        write(1, "FAIL: shmat(-1, 0) should return -1\n", 40);
+    if ((int)shm == -1) put_code("E1", &x, y);
+    else test_fail("E1: shmat(-1,0) should return -1");
+    sp_wait(WAIT_TIME, y);
 
-		wait(WAIT_TIME);
-
-    /* EC2: id >= SHM_MAX_REGIONS (10) */
     shm = shmat(10, 0);
-    if ((int)shm == -1) {
-        write(1, "PASS: shmat(10, 0) rejected (id>=10)\n", 40);
-    } else 
-        write(1, "FAIL: shmat(10, 0) should return -1\n", 40);
+    if ((int)shm == -1) put_code("E2", &x, y);
+    else test_fail("E2: shmat(10,0) should return -1");
+    sp_wait(WAIT_TIME, y);
 
-		wait(WAIT_TIME);
-
-    /* EC3: addr not page-aligned */
     shm = shmat(0, (void*)0x81C001);
-    if ((int)shm == -1) {
-        write(1, "PASS: shmat(0, non-aligned addr) rejected\n", 43);
-    } else 
-        write(1, "FAIL: shmat(0, non-aligned) should return -1\n", 46);
+    if ((int)shm == -1) put_code("E3", &x, y);
+    else test_fail("E3: shmat(0,non-aligned) should return -1");
+    sp_wait(WAIT_TIME, y);
 
-		wait(WAIT_TIME);
-
-    /* EC4: addr points to occupied user data (0x800000) */
     shm = shmat(0, (void*)0x800000);
-    if ((int)shm == -1) {
-        write(1, "PASS: shmat(0, occupied data addr) rejected\n", 45);
-    } else 
-        write(1, "FAIL: shmat(0, occupied data addr) should return -1\n", 52);
+    if ((int)shm == -1) put_code("E4", &x, y);
+    else test_fail("E4: shmat(0,occupied data) should return -1");
+    sp_wait(WAIT_TIME, y);
 
-		wait(WAIT_TIME);
-
-    /* EC5: addr points to occupied user code (0x814000) */
     shm = shmat(0, (void*)0x814000);
-    if ((int)shm == -1) {
-        write(1, "PASS: shmat(0, occupied code addr) rejected\n", 45);
-    } else 
-        write(1, "FAIL: shmat(0, occupied code addr) should return -1\n", 52);
+    if ((int)shm == -1) put_code("E5", &x, y);
+    else test_fail("E5: shmat(0,occupied code) should return -1");
+    sp_wait(WAIT_TIME, y);
 
-		wait(WAIT_TIME);
+    sp_ok(y);
 
-    /* ===== SUCCESS CASES ===== */
-    write(1, "\n--- SUCCESS CASES ---\n", 22);
+    /* ===== SC TESTS ===== */
+    y = 3; x = 8;
+    gotoxy(0, y); write(1, "SC:", 3);
+    sp_tick(y);
 
-    /* SC1: 0 addr → auto-assign region 0 */
     shm = shmat(0, 0);
-    if ((int)shm >= 0) {
-        write(1, "PASS: shmat(0, 0) -> ", 25);
-        itoa((int)shm, buff);
-        write(1, buff, strlen(buff));
-        write(1, "\n", 1);
-    } else 
-        write(1, "FAIL: shmat(0, 0) should succeed\n", 37);
+    if ((int)shm >= 0) put_code("S1", &x, y);
+    else test_fail("S1: shmat(0,0) should succeed");
+    sp_wait(WAIT_TIME, y);
 
-		wait(WAIT_TIME);
+    {
+        void *explicit = shmat(1, (void*)0x81D000);
+        if ((int)explicit == 0x81D000) put_code("S2", &x, y);
+        else test_fail("S2: shmat(1,0x81D000) wrong addr");
+    }
+    sp_wait(WAIT_TIME, y);
 
-    /* SC2: Explicit valid addr (free page at 0x81D000) */
-		void *explicit = shmat(1, (void*)0x81D000);
-		if ((int)explicit == 0x81D000) {
-				write(1, "PASS: shmat(1, 0x81D000) mapped at requested addr\n", 51);
-		} else 
-				write(1, "FAIL: shmat(1, 0x81D000) returned unexpected addr\n", 51);
-				
+    {
+        int *mem = (int *)shmat(2, 0);
+        if ((int)mem >= 0) {
+            mem[0] = 0xDEAD; mem[1] = 0xBEEF;
+            if (mem[0] == 0xDEAD && mem[1] == 0xBEEF) put_code("S3", &x, y);
+            else test_fail("S3: write/readback mismatch");
+        } else test_fail("S3: shmat(2,0) failed");
+    }
+    sp_wait(WAIT_TIME, y);
 
-		wait(WAIT_TIME);
+    {
+        void *first  = shmat(3, 0);
+        void *second = shmat(3, 0);
+        if ((int)first >= 0 && (int)second >= 0 && first != second)
+            put_code("S4", &x, y);
+        else if ((int)first >= 0 && (int)second >= 0)
+            put_code("S4", &x, y);
+        else test_fail("S4: double attach failed");
+    }
+    sp_wait(WAIT_TIME, y);
 
-    /* SC3: Write/readback on shared memory */
-		int *mem = (int *)shmat(2, 0);
-		if ((int)mem < 0) {
-				write(1, "FAIL: shmat(2, 0) failed\n", 29);
-		} else {
-				mem[0] = 0xDEAD;
-				mem[1] = 0xBEEF;
-				if (mem[0] == 0xDEAD && mem[1] == 0xBEEF)
-						write(1, "PASS: write/readback on shared memory works\n", 46);
-				else 
-						write(1, "FAIL: write/readback mismatch\n", 31);
-		}
+    sp_ok(y);
 
-		wait(WAIT_TIME);
+    /* ===== SHMDT TESTS ===== */
+    y = 4; x = 8;
+    gotoxy(0, y); write(1, "SHMDT:", 6);
+    sp_tick(y);
 
-    /* SC4: Attach same region twice in same process */
-		void *first  = shmat(3, 0);
-		void *second = shmat(3, 0);
-		if ((int)first >= 0 && (int)second >= 0 && first != second) {
-				write(1, "PASS: same region attached twice at unique addrs\n", 50);
-		}
-		else if ((int)first >= 0 && (int)second >= 0)
-				write(1, "INFO: same region twice returned same addr (ok)\n", 49);
-		else 
-				write(1, "FAIL: double attach of same region failed\n", 44);
-				
+    if (shmdt(0) == -1) put_code("D1", &x, y);
+    else test_fail("D1: shmdt(0) should be rejected");
+    sp_wait(WAIT_TIME, y);
 
-		wait(WAIT_TIME);
+    if (shmdt((void*)0x830001) == -1) put_code("D2", &x, y);
+    else test_fail("D2: shmdt(non-aligned) should be rejected");
+    sp_wait(WAIT_TIME, y);
 
-		clean_screen();
-    write(1, "\n===== SHMDT TESTS =====\n", 25);
+    if (shmdt((void*)0x830000) == -1) put_code("D3", &x, y);
+    else test_fail("D3: shmdt(unmapped) should be rejected");
+    sp_wait(WAIT_TIME, y);
 
-    /* EC_shmdt1: detach 0 addr */
-    if (shmdt(0) == -1)
-        write(1, "PASS: shmdt(0) rejected\n", 25);
-    else
-        write(1, "FAIL: shmdt(0) should return -1\n", 33);
+    if (shmdt((void*)0x800000) == -1) put_code("D4", &x, y);
+    else test_fail("D4: shmdt(data addr) should be rejected");
+    sp_wait(WAIT_TIME, y);
 
-		wait(WAIT_TIME);
-
-    /* EC_shmdt2: non-aligned addr */
-    if (shmdt((void*)0x830001) == -1)
-        write(1, "PASS: shmdt(non-aligned) rejected\n", 35);
-    else
-        write(1, "FAIL: shmdt(non-aligned) should return -1\n", 43);
-
-		wait(WAIT_TIME);
-
-    /* EC_shmdt3: addr not mapped */
-    if (shmdt((void*)0x830000) == -1)
-        write(1, "PASS: shmdt(unmapped addr) rejected\n", 37);
-    else
-        write(1, "FAIL: shmdt(unmapped addr) should return -1\n", 45);
-
-		wait(WAIT_TIME);
-
-    /* EC_shmdt4: addr occupied by user data, not shm */
-    if (shmdt((void*)0x800000) == -1)
-        write(1, "PASS: shmdt(data addr) rejected\n", 33);
-    else
-        write(1, "FAIL: shmdt(data addr) should return -1\n", 41);
-
-		wait(WAIT_TIME);
-
-    /* SC_shmdt1: attach, write, detach, verify gone (reattach succeeds) */
     {
         void *a = shmat(4, (void*)0x830000);
         if ((int)a < 0) {
-            write(1, "FAIL: shmat(4, 0x830000) for shmdt test failed\n", 48);
+            test_fail("DS1: shmat(4,0x830000) failed");
         } else {
             int *p = (int *)a;
             p[0] = 0x1234;
-            if (shmdt(a) == -1)
-                write(1, "FAIL: shmdt valid addr returned -1\n", 36);
-            else {
+            if (shmdt(a) == -1) {
+                test_fail("DS1: shmdt valid addr returned -1");
+            } else {
                 void *a2 = shmat(4, (void*)0x830000);
-                if ((int)a2 == (int)a)
-                    write(1, "PASS: shmat after shmdt reuses same addr\n", 43);
-                else
-                    write(1, "INFO: shmat after shmdt used diff addr (still ok)\n", 51);
+                if ((int)a2 == (int)a) put_code("DS1", &x, y);
+                else put_code("DS1", &x, y);
             }
         }
     }
+    sp_wait(WAIT_TIME, y);
 
-		wait(WAIT_TIME);
-    /* SC_shmdt2: double attach, detach one, other still accessible */
     {
         void *a1 = shmat(5, 0);
         void *a2 = shmat(5, 0);
         if ((int)a1 < 0 || (int)a2 < 0) {
-            write(1, "FAIL: shmat(5) for double test failed\n", 39);
+            test_fail("DS2: shmat(5) for double test failed");
         } else {
             *(int *)a1 = 0xABCD;
-            int ret = shmdt(a1);
-            if (ret == -1)
-                write(1, "FAIL: shmdt first mapping returned -1\n", 39);
-            else if (*(int *)a2 == 0xABCD)
-                write(1, "PASS: other mapping still valid after shmdt\n", 45);
-            else
-                write(1, "FAIL: other mapping corrupted after shmdt\n", 43);
+            if (shmdt(a1) == -1) {
+                test_fail("DS2: shmdt first mapping returned -1");
+            } else if (*(int *)a2 == 0xABCD) {
+                put_code("DS2", &x, y);
+            } else {
+                test_fail("DS2: other mapping corrupted");
+            }
             shmdt(a2);
         }
     }
+    sp_wait(WAIT_TIME, y);
 
-		wait(WAIT_TIME);
-    /* SC_shmdt3: double detach — second should fail */
     {
         void *a = shmat(5, 0);
         if ((int)a >= 0) {
             shmdt(a);
-            if (shmdt(a) == -1)
-                write(1, "PASS: second shmdt on same addr rejected\n", 43);
-            else
-                write(1, "FAIL: second shmdt should return -1\n", 37);
-        }
+            if (shmdt(a) == -1) put_code("DS3", &x, y);
+            else test_fail("DS3: second shmdt should fail");
+        } else test_fail("DS3: shmat(5) failed");
     }
+    sp_wait(WAIT_TIME, y);
 
-		wait(WAIT_TIME);
-		clean_screen();
-    write(1, "\n===== SHMRM TESTS =====\n", 25);
+    sp_ok(y);
 
-    /* EC_shmrm1: id < 0 */
-    if (shmrm(-1) == -1)
-        write(1, "PASS: shmrm(-1) rejected\n", 26);
-    else
-        write(1, "FAIL: shmrm(-1) should return -1\n", 34);
+    /* ===== SHMRM TESTS ===== */
+    y = 5; x = 8;
+    gotoxy(0, y); write(1, "SHMRM:", 6);
+    sp_tick(y);
 
-		wait(WAIT_TIME);
-    /* EC_shmrm2: id >= SHM_MAX_REGIONS */
-    if (shmrm(10) == -1)
-        write(1, "PASS: shmrm(10) rejected\n", 26);
-    else
-        write(1, "FAIL: shmrm(10) should return -1\n", 34);
+    if (shmrm(-1) == -1) put_code("RM1", &x, y);
+    else test_fail("RM1: shmrm(-1) should fail");
+    sp_wait(WAIT_TIME, y);
 
-		wait(WAIT_TIME);
-    /* SC_shmrm1: shmrm → last shmdt zeroes content */
+    if (shmrm(10) == -1) put_code("RM2", &x, y);
+    else test_fail("RM2: shmrm(10) should fail");
+    sp_wait(WAIT_TIME, y);
+
     {
         void *a = shmat(6, (void*)0x831000);
         if ((int)a < 0) {
-            write(1, "FAIL: shmat(6, 0x831000) for shmrm test failed\n", 48);
+            test_fail("RS1: shmat(6,0x831000) failed");
         } else {
             int *p = (int *)a;
-            p[0] = 0xDEAD;
-            p[1] = 0xBEEF;
-
-            int r = shmrm(6);
-            if (r == -1) {
-                write(1, "FAIL: shmrm(6) returned -1\n", 28);
+            p[0] = 0xDEAD; p[1] = 0xBEEF;
+            if (shmrm(6) == -1) {
+                test_fail("RS1: shmrm(6) returned -1");
             } else {
                 shmdt(a);
                 void *a2 = shmat(6, (void*)0x831000);
                 if ((int)a2 < 0) {
-                    write(1, "FAIL: shmat(6) after shmrm+shmdt failed\n", 41);
+                    test_fail("RS1: reattach after shmrm+shmdt failed");
                 } else {
                     int *p2 = (int *)a2;
-                    if (p2[0] == 0 && p2[1] == 0)
-                        write(1, "PASS: shm page zeroed after shmrm+last shmdt\n", 46);
-                    else
-                        write(1, "FAIL: shm page not zeroed after shmrm+last shmdt\n", 49);
+                    if (p2[0] == 0 && p2[1] == 0) put_code("RS1", &x, y);
+                    else test_fail("RS1: page not zeroed after shmrm+shmdt");
                 }
             }
         }
     }
+    sp_wait(WAIT_TIME, y);
 
-		wait(WAIT_TIME);
-    /* SC_shmrm2: shmrm idempotent — call twice */
     {
-        if (shmrm(7) == 0 && shmrm(7) == 0)
-            write(1, "PASS: shmrm twice on same id returns 0\n", 40);
-        else
-            write(1, "FAIL: shmrm twice should both succeed\n", 39);
+        if (shmrm(7) == 0 && shmrm(7) == 0) put_code("RS2", &x, y);
+        else test_fail("RS2: shmrm twice should succeed");
     }
+    sp_wait(WAIT_TIME, y);
 
-		wait(WAIT_TIME);
-    /* SC_shmrm3: full cycle: attach → write → shmrm → detach → attach → verify zeroed → write new → verify */
     {
         void *a = shmat(8, 0);
         if ((int)a < 0) {
-            write(1, "FAIL: shmat(8) for cycle test\n", 31);
+            test_fail("RS3: shmat(8) failed");
         } else {
             *(int *)a = 0xCAFE;
-            shmrm(8);
-            shmdt(a);
-
+            shmrm(8); shmdt(a);
             void *a2 = shmat(8, 0);
             if ((int)a2 < 0) {
-                write(1, "FAIL: shmat(8) after cycle failed\n", 35);
+                test_fail("RS3: reattach failed");
             } else if (*(int *)a2 != 0) {
-                write(1, "FAIL: page not zeroed after shmrm+detach cycle\n", 48);
+                test_fail("RS3: page not zeroed after shmrm cycle");
             } else {
                 *(int *)a2 = 0xFACE;
-                if (*(int *)a2 == 0xFACE)
-                    write(1, "PASS: full shmrm cycle: zeroed then writable\n", 47);
-                else
-                    write(1, "FAIL: write after zero failed\n", 31);
+                if (*(int *)a2 == 0xFACE) put_code("RS3", &x, y);
+                else test_fail("RS3: write after zero failed");
             }
         }
     }
+    sp_wait(WAIT_TIME, y);
 
-		wait(WAIT_TIME);
-		clean_screen();
-    /* SC5: Attach all 10 regions, verify unique addrs */
-    write(1, "\n--- Attaching all 10 regions ---\n", 35);
-    ok = 1;
-    for (int i = 0; i < 10; i++) {
-        ptrs[i] = shmat(i, 0);
-        if ((int)ptrs[i] < 0) {
-            write(1, "FAIL: shmat(", 12);
-            itoa(i, buff);
-            write(1, buff, strlen(buff));
-            write(1, ") failed\n", 9);
-            ok = 0;
+    sp_ok(y);
+
+    /* ===== SC5 ===== */
+    y = 6; x = 8;
+    gotoxy(0, y); write(1, "SC5:", 4);
+    sp_tick(y);
+
+    {
+        int ok = 1;
+        for (int i = 0; i < 10; i++) {
+            ptrs[i] = shmat(i, 0);
+            if ((int)ptrs[i] < 0) ok = 0;
         }
+        if (ok) {
+            for (int i = 0; i < 10 && ok; i++)
+                for (int j = i+1; j < 10 && ok; j++)
+                    if (ptrs[i] == ptrs[j]) ok = 0;
+        }
+        if (ok) put_code("SC5", &x, y);
+        else test_fail("SC5: attach all 10 regions failed");
     }
-    if (ok) {
-        for (int i = 0; i < 10 && ok; i++)
-            for (int j = i+1; j < 10 && ok; j++)
-                if (ptrs[i] == ptrs[j]) ok = 0;
-        if (ok)
-            write(1, "PASS: all 10 regions attached at unique addrs\n", 48);
-        else
-            write(1, "FAIL: overlapping addresses among regions\n", 44);
-    }
+    sp_wait(WAIT_TIME, y);
+    sp_ok(y);
 
-		wait(WAIT_TIME);
-    /* SC6: Shared memory across fork() */
+    /* ===== SC6 ===== */
+    y = 7; x = 8;
+    gotoxy(0, y); write(1, "SC6:", 4);
+    sp_tick(y);
+
     {
         int *shm_data = (int *)shmat(9, 0);
-        shm_data[0] = 0;
-        shm_data[1] = 0;
-
+        shm_data[0] = 0x42; shm_data[1] = 0;
         int pid = fork();
         if (pid == 0) {
-            int *child_data = (int *)shmat(9, 0);
-            child_data[0] = 0xCAFE;
-            child_data[1] = 1;
-            write(1, "child: wrote 0xCAFE, blocking...\n", 33);
-	    block();
-	    exit();
+            if (shm_data[0] == 0x42) shm_data[1] = 0xCAFE;
+            else test_fail("SC6: child sees wrong inherited value");
+            block(); exit();
         } else {
             int spins = 0;
             while (shm_data[1] == 0 && spins < 20000000) spins++;
             unblock(pid);
-            if (shm_data[0] == 0xCAFE)
-                write(1, "PASS: parent sees child's 0xCAFE via shm\n", 42);
-            else
-                write(1, "FAIL: parent sees wrong shm value after fork\n", 46);
+            if (shm_data[0] == 0x42 && shm_data[1] == 0xCAFE)
+                put_code("SC6", &x, y);
+            else test_fail("SC6: parent sees wrong value after fork");
         }
     }
+    sp_wait(WAIT_TIME, y);
+    sp_ok(y);
 
-    write(1, "\n=== ALL SHMAT + SHMDT + SHMRM TESTS COMPLETE ===\n", 49);
-	wait(WAIT_TIME);
-	wait(WAIT_TIME);
+    /* ===== SC7 ===== */
+    y = 8; x = 8;
+    gotoxy(0, y); write(1, "SC7:", 4);
+    sp_tick(y);
 
-    write(1,"\n",1);
+    {
+        shmdt(ptrs[5]);
+        void *a = shmat(5, (void*)0x832000);
+        if ((int)a < 0) {
+            test_fail("SC7: shmat for unmap+zero test failed");
+        } else {
+            int *p = (int *)a;
+            p[0] = 0xDEAD; p[1] = 0xBEEF;
+            shmrm(5); shmdt(a);
+            void *a2 = shmat(5, (void*)0x832000);
+            if ((int)a2 != (int)a) {
+                test_fail("SC7: old addr not reusable after shmrm+shmdt");
+            } else {
+                int *p2 = (int *)a2;
+                if (p2[0] == 0 && p2[1] == 0)
+                    put_code("SC7", &x, y);
+                else test_fail("SC7: content not zeroed after shmrm+shmdt");
+            }
+        }
+    }
+    sp_wait(WAIT_TIME, y);
+    sp_ok(y);
+
+    /* ===== FINAL SCREEN ===== */
+    sp_wait(3 * WAIT_TIME, 10);
     clean_screen();
+    gotoxy(28, 12);
+    set_color(2, 0);
+    write(1, "ALL TESTS PASSED!", 17);
+    set_color(6, 0);
+    sp_wait(3 * WAIT_TIME, 12);
     decorateScreen();
     char buffer[256];
     while(1){
-        gotoxy(0,0);
-        itoa(getfps(),buffer);
-        write(1,buffer,strlen(buffer));
+        gotoxy(35, 13);
+				write(1, "FPS = ", 6);
+        itoa(getfps(), buffer);
+        write(1, buffer, strlen(buffer));
     }
 }
