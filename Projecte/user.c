@@ -1,442 +1,270 @@
 #include <libc.h>
 
-#define WAIT_TIME 8000000
-
-void clean_screen()
-{
-    for(int y = 0; y<25 ; y++)
-        for(int x = 0; x<80 ; x++)
-            write(1, " ", 1);
-    gotoxy(0,0);
+void clean_screen(void) {
+  for (int y = 0; y < 25; y++)
+    for (int x = 0; x < 80; x++)
+      write(1, " ", 1);
+  gotoxy(0, 0);
 }
 
-int sp_state = 0;
+struct shm_game {
+  volatile char last_key;
+  char _pad[3];
+  volatile int game_running;
+};
 
-void sp_tick(int y) {
-    char c[] = {'/', '-', '\\', '|'};
-    gotoxy(4, y);
-    char buf[2] = {c[sp_state], 0};
-    write(1, buf, 1);
-    sp_state = (sp_state + 1) & 3;
-}
+#define KEY_UP 'w'
+#define KEY_DOWN 's'
+#define KEY_LEFT 'a'
+#define KEY_RIGHT 'd'
 
-void sp_wait(int loops, int y) {
-    while (loops--) {
-        if ((loops & 0x7FFFF) == 0) sp_tick(y);
-    }
-    sp_tick(y);
-}
+#define MAX_SEG 100
+#define MOVE_TICKS 8
+#define VERTICAL_TICKS 14
+#define FPS_INTERVAL 18
 
-void sp_ok(int y) {
-    gotoxy(4, y);
-    write(1, "PASS ", 5);
-}
-
-void put_code(char *s, int *x, int y) {
-    gotoxy(*x, y);
-    write(1, s, strlen(s));
-    *x += strlen(s) + 1;
-}
-
-void test_fail(char *msg) {
-    gotoxy(0, 22);
-    write(1, msg, strlen(msg));
-    int n = strlen(msg);
-    for (int i = n; i < 79; i++) write(1, " ", 1);
-}
-
-int latest_ticks = 0;
-
-int getfps()
-{
-    int current_ticks = gettime();
-    int ret = (latest_ticks - current_ticks)/18;
-    latest_ticks = current_ticks;
-    return ret;
-}
-
-void decorateScreen()
-{
+static struct {
+  struct seg {
     int x, y;
+  } segs[MAX_SEG];
+  int head, tail, len;
+  int dir_x, dir_y;
+  int food_x, food_y;
+  int score;
+  int last_move, last_fps;
+  int move_count;
+  struct shm_game *gs;
+} g;
 
-    clean_screen();
-
-    set_color(6, 0);
-
-    gotoxy(0, 0);
-    for(x = 0; x < 80; x++)
-        write(1, "=", 1);
-
-    for(y = 1; y < 24; y++) {
-        gotoxy(0, y);
-        write(1, "|", 1);
-
-        if(y == 5) {
-            gotoxy(32, y);
-            set_color(3, 0);
-            write(1, "_____________", 13);
-            set_color(6, 0);
-        }
-        else if(y == 6) {
-            gotoxy(31, y);
-            set_color(3, 0);
-            write(1, "/             \\", 15);
-            set_color(6, 0);
-        }
-        else if(y == 7) {
-            gotoxy(31, y);
-            set_color(3, 0);
-            write(1, "|  o       o  |", 15);
-            set_color(6, 0);
-        }
-        else if(y == 8) {
-            gotoxy(31, y);
-            set_color(3, 0);
-            write(1, "|     >       |", 15);
-            set_color(6, 0);
-        }
-        else if(y == 9) {
-            gotoxy(31, y);
-            set_color(3, 0);
-            write(1, "|   \\_____/   |", 15);
-            set_color(6, 0);
-        }
-        else if(y == 10) {
-            gotoxy(31, y);
-            set_color(3, 0);
-            write(1, "|  HAPPY! :D  |", 15);
-            set_color(6, 0);
-        }
-        else if(y == 11) {
-            gotoxy(31, y);
-            set_color(3, 0);
-            write(1, "|             |", 15);
-            set_color(6, 0);
-        }
-        else if(y == 12) {
-            gotoxy(32, y);
-            set_color(3, 0);
-            write(1, "\\___________/", 13);
-            set_color(6, 0);
-        }
-
-        gotoxy(79, y);
-        write(1, "|", 1);
-    }
-
-    gotoxy(0, 24);
-    for(x = 0; x < 80; x++)
-        write(1, "=", 1);
+void putc(int x, int y, char c, int fg, int bg) {
+  set_color(fg, bg);
+  gotoxy(x, y);
+  write(1, &c, 1);
 }
 
-int __attribute__ ((__section__(".text.main")))
-main(void)
-{
-    clean_screen();
-    char buff[100];
-    void *shm;
-    void *ptrs[10];
-    int x, y;
+void pstr(int x, int y, char *s, int fg, int bg) {
+  set_color(fg, bg);
+  gotoxy(x, y);
+  write(1, s, strlen(s));
+}
 
-    write(1, "=== MILESTONE 5: Shared Memory ===\n", 36);
+void draw_walls(void) {
+  int x, y;
+  set_color(6, 0);
+  for (x = 0; x < 80; x++) {
+    gotoxy(x, 1);
+    write(1, "#", 1);
+  }
+  for (x = 0; x < 80; x++) {
+    gotoxy(x, 23);
+    write(1, "#", 1);
+  }
+  for (y = 2; y < 23; y++) {
+    gotoxy(0, y);
+    write(1, "#", 1);
+  }
+  for (y = 2; y < 23; y++) {
+    gotoxy(79, y);
+    write(1, "#", 1);
+  }
+}
 
-    /* ===== EC TESTS ===== */
-    y = 2; x = 8;
-    gotoxy(0, y); write(1, "EC:", 3);
-    sp_tick(y);
+void draw_head(void) { putc(g.segs[g.head].x, g.segs[g.head].y, 'O', 2, 0); }
 
-    shm = shmat(-1, 0);
-    if ((int)shm == -1) put_code("E1", &x, y);
-    else test_fail("E1: shmat(-1,0) should return -1");
-    sp_wait(WAIT_TIME, y);
+void erase_tail(void) {
+  int t = g.tail;
+  putc(g.segs[t].x, g.segs[t].y, ' ', 0, 0);
+}
 
-    shm = shmat(10, 0);
-    if ((int)shm == -1) put_code("E2", &x, y);
-    else test_fail("E2: shmat(10,0) should return -1");
-    sp_wait(WAIT_TIME, y);
+void draw_food(void) { putc(g.food_x, g.food_y, '$', 14, 0); }
 
-    shm = shmat(0, (void*)0x81C001);
-    if ((int)shm == -1) put_code("E3", &x, y);
-    else test_fail("E3: shmat(0,non-aligned) should return -1");
-    sp_wait(WAIT_TIME, y);
+void draw_stats(void) {
+  char buf[20];
+  set_color(15, 0);
+  gotoxy(0, 0);
+  write(1, "FPS:", 4);
+  itoa(g.move_count, buf);
+  write(1, buf, strlen(buf));
+  write(1, " SCORE:", 7);
+  itoa(g.score, buf);
+  write(1, buf, strlen(buf));
+  write(1, " LEN:", 5);
+  itoa(g.len, buf);
+  write(1, buf, strlen(buf));
+  for (int i = 0; i < 50; i++)
+    write(1, " ", 1);
+  g.move_count = 0;
+  g.last_fps = gettime();
+}
 
-    shm = shmat(0, (void*)0x800000);
-    if ((int)shm == -1) put_code("E4", &x, y);
-    else test_fail("E4: shmat(0,occupied data) should return -1");
-    sp_wait(WAIT_TIME, y);
+int rng(void) {
+  static int r = 42;
+  r = (r * 1103515245 + 12345) & 0x7FFFFFFF;
+  return r;
+}
 
-    shm = shmat(0, (void*)0x814000);
-    if ((int)shm == -1) put_code("E5", &x, y);
-    else test_fail("E5: shmat(0,occupied code) should return -1");
-    sp_wait(WAIT_TIME, y);
+int body_at(int x, int y, int incl_tail) {
+  int i = incl_tail ? g.tail : (g.tail + 1) % MAX_SEG;
+  while (1) {
+    if (g.segs[i].x == x && g.segs[i].y == y)
+      return 1;
+    if (i == g.head)
+      break;
+    i = (i + 1) % MAX_SEG;
+  }
+  return 0;
+}
 
-    sp_ok(y);
+void place_food(void) {
+  do {
+    g.food_x = 1 + (rng() % 78);
+    g.food_y = 2 + (rng() % 21);
+  } while (body_at(g.food_x, g.food_y, 1));
+  draw_food();
+}
 
-    /* ===== SC TESTS ===== */
-    y = 3; x = 8;
-    gotoxy(0, y); write(1, "SC:", 3);
-    sp_tick(y);
+void game_over(void) {
+  g.gs->game_running = 0;
+  set_color(4, 0);
+  gotoxy(33, 11);
+  write(1, "GAME OVER", 9);
+  gotoxy(31, 12);
+  write(1, "Score: ", 7);
+  char buf[10];
+  itoa(g.score, buf);
+  write(1, buf, strlen(buf));
+}
 
-    shm = shmat(0, 0);
-    if ((int)shm >= 0) put_code("S1", &x, y);
-    else test_fail("S1: shmat(0,0) should succeed");
-    sp_wait(WAIT_TIME, y);
+void move_snake(void) {
+  struct seg *s = &g.segs[g.head];
+  int nx = s->x + g.dir_x;
+  int ny = s->y + g.dir_y;
 
-    {
-        void *explicit = shmat(1, (void*)0x81D000);
-        if ((int)explicit == 0x81D000) put_code("S2", &x, y);
-        else test_fail("S2: shmat(1,0x81D000) wrong addr");
+  if (nx < 1 || nx > 78 || ny < 2 || ny > 22) {
+    game_over();
+    return;
+  }
+
+  int eating = (nx == g.food_x && ny == g.food_y);
+
+  if (body_at(nx, ny, eating)) {
+    game_over();
+    return;
+  }
+
+  int nh = (g.head + 1) % MAX_SEG;
+  g.segs[nh].x = nx;
+  g.segs[nh].y = ny;
+  g.head = nh;
+
+  draw_head();
+
+  int prev = (g.head - 1 + MAX_SEG) % MAX_SEG;
+  if (prev != g.tail)
+    putc(g.segs[prev].x, g.segs[prev].y, 'o', 2, 0);
+
+  if (eating) {
+    g.len++;
+    g.score++;
+    place_food();
+  } else {
+    erase_tail();
+    g.tail = (g.tail + 1) % MAX_SEG;
+  }
+  g.move_count++;
+  g.last_move = gettime();
+}
+
+void init_game(void) {
+  clean_screen();
+  draw_walls();
+
+  g.head = 2;
+  g.tail = 0;
+  g.len = 3;
+  g.dir_x = 1;
+  g.dir_y = 0;
+  g.segs[0].x = 10;
+  g.segs[0].y = 12;
+  g.segs[1].x = 11;
+  g.segs[1].y = 12;
+  g.segs[2].x = 12;
+  g.segs[2].y = 12;
+  g.score = 0;
+  g.move_count = 0;
+
+  putc(g.segs[1].x, g.segs[1].y, 'o', 2, 0);
+  draw_head();
+  place_food();
+
+  g.last_move = gettime();
+  g.last_fps = gettime();
+  draw_stats();
+}
+
+void engine(void) {
+  init_game();
+
+  while (g.gs->game_running) {
+    char key = g.gs->last_key;
+    if (key) {
+      g.gs->last_key = 0;
+      if (key == KEY_UP && g.dir_y == 0) {
+        g.dir_x = 0;
+        g.dir_y = -1;
+      }
+      if (key == KEY_DOWN && g.dir_y == 0) {
+        g.dir_x = 0;
+        g.dir_y = 1;
+      }
+      if (key == KEY_LEFT && g.dir_x == 0) {
+        g.dir_x = -1;
+        g.dir_y = 0;
+      }
+      if (key == KEY_RIGHT && g.dir_x == 0) {
+        g.dir_x = 1;
+        g.dir_y = 0;
+      }
     }
-    sp_wait(WAIT_TIME, y);
 
-    {
-        int *mem = (int *)shmat(2, 0);
-        if ((int)mem >= 0) {
-            mem[0] = 0xDEAD; mem[1] = 0xBEEF;
-            if (mem[0] == 0xDEAD && mem[1] == 0xBEEF) put_code("S3", &x, y);
-            else test_fail("S3: write/readback mismatch");
-        } else test_fail("S3: shmat(2,0) failed");
+    int now = gettime();
+    int move_ticks = g.dir_x != 0 ? MOVE_TICKS : VERTICAL_TICKS;
+    if (now - g.last_move >= move_ticks) {
+      move_snake();
+      if (!g.gs->game_running)
+        break;
     }
-    sp_wait(WAIT_TIME, y);
 
-    {
-        void *first  = shmat(3, 0);
-        void *second = shmat(3, 0);
-        if ((int)first >= 0 && (int)second >= 0 && first != second)
-            put_code("S4", &x, y);
-        else if ((int)first >= 0 && (int)second >= 0)
-            put_code("S4", &x, y);
-        else test_fail("S4: double attach failed");
-    }
-    sp_wait(WAIT_TIME, y);
+    if (now - g.last_fps >= FPS_INTERVAL)
+      draw_stats();
+  }
+}
 
-    sp_ok(y);
+void input_handler(void) {
+  char buf[1];
+  while (1) {
+    if (!g.gs->game_running)
+      exit();
+    read(buf, 1);
+    if (!g.gs->game_running)
+      exit();
+    char c = buf[0];
+    if (c == 'w' || c == 'a' || c == 's' || 'd')
+      g.gs->last_key = c;
+  }
+}
 
-    /* ===== SHMDT TESTS ===== */
-    y = 4; x = 8;
-    gotoxy(0, y); write(1, "SHMDT:", 6);
-    sp_tick(y);
+int __attribute__((__section__(".text.main"))) main(void) {
+  g.gs = (struct shm_game *)shmat(0, 0);
+  g.gs->last_key = 0;
+  g.gs->game_running = 1;
 
-    if (shmdt(0) == -1) put_code("D1", &x, y);
-    else test_fail("D1: shmdt(0) should be rejected");
-    sp_wait(WAIT_TIME, y);
+  int pid = fork();
+  if (pid == 0) {
+    engine();
+    exit();
+  }
 
-    if (shmdt((void*)0x830001) == -1) put_code("D2", &x, y);
-    else test_fail("D2: shmdt(non-aligned) should be rejected");
-    sp_wait(WAIT_TIME, y);
-
-    if (shmdt((void*)0x830000) == -1) put_code("D3", &x, y);
-    else test_fail("D3: shmdt(unmapped) should be rejected");
-    sp_wait(WAIT_TIME, y);
-
-    if (shmdt((void*)0x800000) == -1) put_code("D4", &x, y);
-    else test_fail("D4: shmdt(data addr) should be rejected");
-    sp_wait(WAIT_TIME, y);
-
-    {
-        void *a = shmat(4, (void*)0x830000);
-        if ((int)a < 0) {
-            test_fail("DS1: shmat(4,0x830000) failed");
-        } else {
-            int *p = (int *)a;
-            p[0] = 0x1234;
-            if (shmdt(a) == -1) {
-                test_fail("DS1: shmdt valid addr returned -1");
-            } else {
-                void *a2 = shmat(4, (void*)0x830000);
-                if ((int)a2 == (int)a) put_code("DS1", &x, y);
-                else put_code("DS1", &x, y);
-            }
-        }
-    }
-    sp_wait(WAIT_TIME, y);
-
-    {
-        void *a1 = shmat(5, 0);
-        void *a2 = shmat(5, 0);
-        if ((int)a1 < 0 || (int)a2 < 0) {
-            test_fail("DS2: shmat(5) for double test failed");
-        } else {
-            *(int *)a1 = 0xABCD;
-            if (shmdt(a1) == -1) {
-                test_fail("DS2: shmdt first mapping returned -1");
-            } else if (*(int *)a2 == 0xABCD) {
-                put_code("DS2", &x, y);
-            } else {
-                test_fail("DS2: other mapping corrupted");
-            }
-            shmdt(a2);
-        }
-    }
-    sp_wait(WAIT_TIME, y);
-
-    {
-        void *a = shmat(5, 0);
-        if ((int)a >= 0) {
-            shmdt(a);
-            if (shmdt(a) == -1) put_code("DS3", &x, y);
-            else test_fail("DS3: second shmdt should fail");
-        } else test_fail("DS3: shmat(5) failed");
-    }
-    sp_wait(WAIT_TIME, y);
-
-    sp_ok(y);
-
-    /* ===== SHMRM TESTS ===== */
-    y = 5; x = 8;
-    gotoxy(0, y); write(1, "SHMRM:", 6);
-    sp_tick(y);
-
-    if (shmrm(-1) == -1) put_code("RM1", &x, y);
-    else test_fail("RM1: shmrm(-1) should fail");
-    sp_wait(WAIT_TIME, y);
-
-    if (shmrm(10) == -1) put_code("RM2", &x, y);
-    else test_fail("RM2: shmrm(10) should fail");
-    sp_wait(WAIT_TIME, y);
-
-    {
-        void *a = shmat(6, (void*)0x831000);
-        if ((int)a < 0) {
-            test_fail("RS1: shmat(6,0x831000) failed");
-        } else {
-            int *p = (int *)a;
-            p[0] = 0xDEAD; p[1] = 0xBEEF;
-            if (shmrm(6) == -1) {
-                test_fail("RS1: shmrm(6) returned -1");
-            } else {
-                shmdt(a);
-                void *a2 = shmat(6, (void*)0x831000);
-                if ((int)a2 < 0) {
-                    test_fail("RS1: reattach after shmrm+shmdt failed");
-                } else {
-                    int *p2 = (int *)a2;
-                    if (p2[0] == 0 && p2[1] == 0) put_code("RS1", &x, y);
-                    else test_fail("RS1: page not zeroed after shmrm+shmdt");
-                }
-            }
-        }
-    }
-    sp_wait(WAIT_TIME, y);
-
-    {
-        if (shmrm(7) == 0 && shmrm(7) == 0) put_code("RS2", &x, y);
-        else test_fail("RS2: shmrm twice should succeed");
-    }
-    sp_wait(WAIT_TIME, y);
-
-    {
-        void *a = shmat(8, 0);
-        if ((int)a < 0) {
-            test_fail("RS3: shmat(8) failed");
-        } else {
-            *(int *)a = 0xCAFE;
-            shmrm(8); shmdt(a);
-            void *a2 = shmat(8, 0);
-            if ((int)a2 < 0) {
-                test_fail("RS3: reattach failed");
-            } else if (*(int *)a2 != 0) {
-                test_fail("RS3: page not zeroed after shmrm cycle");
-            } else {
-                *(int *)a2 = 0xFACE;
-                if (*(int *)a2 == 0xFACE) put_code("RS3", &x, y);
-                else test_fail("RS3: write after zero failed");
-            }
-        }
-    }
-    sp_wait(WAIT_TIME, y);
-
-    sp_ok(y);
-
-    /* ===== SC5 ===== */
-    y = 6; x = 8;
-    gotoxy(0, y); write(1, "SC5:", 4);
-    sp_tick(y);
-
-    {
-        int ok = 1;
-        for (int i = 0; i < 10; i++) {
-            ptrs[i] = shmat(i, 0);
-            if ((int)ptrs[i] < 0) ok = 0;
-        }
-        if (ok) {
-            for (int i = 0; i < 10 && ok; i++)
-                for (int j = i+1; j < 10 && ok; j++)
-                    if (ptrs[i] == ptrs[j]) ok = 0;
-        }
-        if (ok) put_code("SC5", &x, y);
-        else test_fail("SC5: attach all 10 regions failed");
-    }
-    sp_wait(WAIT_TIME, y);
-    sp_ok(y);
-
-    /* ===== SC6 ===== */
-    y = 7; x = 8;
-    gotoxy(0, y); write(1, "SC6:", 4);
-    sp_tick(y);
-
-    {
-        int *shm_data = (int *)shmat(9, 0);
-        shm_data[0] = 0x42; shm_data[1] = 0;
-        int pid = fork();
-        if (pid == 0) {
-            if (shm_data[0] == 0x42) shm_data[1] = 0xCAFE;
-            else test_fail("SC6: child sees wrong inherited value");
-            block(); exit();
-        } else {
-            int spins = 0;
-            while (shm_data[1] == 0 && spins < 20000000) spins++;
-            unblock(pid);
-            if (shm_data[0] == 0x42 && shm_data[1] == 0xCAFE)
-                put_code("SC6", &x, y);
-            else test_fail("SC6: parent sees wrong value after fork");
-        }
-    }
-    sp_wait(WAIT_TIME, y);
-    sp_ok(y);
-
-    /* ===== SC7 ===== */
-    y = 8; x = 8;
-    gotoxy(0, y); write(1, "SC7:", 4);
-    sp_tick(y);
-
-    {
-        shmdt(ptrs[5]);
-        void *a = shmat(5, (void*)0x832000);
-        if ((int)a < 0) {
-            test_fail("SC7: shmat for unmap+zero test failed");
-        } else {
-            int *p = (int *)a;
-            p[0] = 0xDEAD; p[1] = 0xBEEF;
-            shmrm(5); shmdt(a);
-            void *a2 = shmat(5, (void*)0x832000);
-            if ((int)a2 != (int)a) {
-                test_fail("SC7: old addr not reusable after shmrm+shmdt");
-            } else {
-                int *p2 = (int *)a2;
-                if (p2[0] == 0 && p2[1] == 0)
-                    put_code("SC7", &x, y);
-                else test_fail("SC7: content not zeroed after shmrm+shmdt");
-            }
-        }
-    }
-    sp_wait(WAIT_TIME, y);
-    sp_ok(y);
-
-    /* ===== FINAL SCREEN ===== */
-    sp_wait(3 * WAIT_TIME, 10);
-    clean_screen();
-    gotoxy(28, 12);
-    set_color(2, 0);
-    write(1, "ALL TESTS PASSED!", 17);
-    set_color(6, 0);
-    sp_wait(3 * WAIT_TIME, 12);
-    decorateScreen();
-    char buffer[256];
-    while(1){
-        gotoxy(35, 13);
-				write(1, "FPS = ", 6);
-        itoa(getfps(), buffer);
-        write(1, buffer, strlen(buffer));
-    }
+  input_handler();
+  return 0;
 }
