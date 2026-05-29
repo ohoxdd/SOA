@@ -97,10 +97,11 @@ void draw_stats(void) {
   g.last_fps = gettime();
 }
 
+int rng_seed = 42;
+
 int rng(void) {
-  static int r = 42;
-  r = (r * 1103515245 + 12345) & 0x7FFFFFFF;
-  return r;
+  rng_seed = (rng_seed * 1103515245 + 12345) & 0x7FFFFFFF;
+  return rng_seed;
 }
 
 int body_at(int x, int y, int incl_tail) {
@@ -133,6 +134,8 @@ void game_over(void) {
   char buf[10];
   itoa(g.score, buf);
   write(1, buf, strlen(buf));
+  pstr(28, 14, "Prem R per reiniciar", 15, 0);
+  pstr(24, 15, "o una altra tecla per sortir", 15, 0);
 }
 
 void move_snake(void) {
@@ -176,6 +179,7 @@ void move_snake(void) {
 }
 
 void init_game(void) {
+  rng_seed = gettime();
   clean_screen();
   draw_walls();
 
@@ -243,11 +247,22 @@ void engine(void) {
 void input_handler(void) {
   char buf[1];
   while (1) {
-    if (!g.gs->game_running)
+    if (!g.gs->game_running) {
+      if (buf[0] != 'r' && buf[0] != 'R')
+        read(buf, 1);
+      if (buf[0] == 'r' || buf[0] == 'R') {
+        clean_screen();
+        g.gs->last_key = 0;
+        g.gs->game_running = 1;
+        int pid = fork();
+        if (pid == 0) { engine(); exit(); }
+        continue;
+      }
       exit();
+    }
     read(buf, 1);
     if (!g.gs->game_running)
-      exit();
+      continue;
     char c = buf[0];
     if (c == 'w' || c == 'a' || c == 's' || 'd')
       g.gs->last_key = c;
@@ -257,6 +272,18 @@ void input_handler(void) {
 int __attribute__((__section__(".text.main"))) main(void) {
   g.gs = (struct shm_game *)shmat(0, 0);
   g.gs->last_key = 0;
+  g.gs->game_running = 0;
+
+  clean_screen();
+  pstr(20, 11, "WASD per moure's. Menja el $. No moris.", 15, 0);
+  pstr(18, 12,
+       "De veritat he d'explicar-te com jugar Snake?", 15, 0);
+  pstr(24, 14, "Prem qualsevol tecla per comencar", 14, 0);
+
+  char buf[1];
+  read(buf, 1);
+
+  clean_screen();
   g.gs->game_running = 1;
 
   int pid = fork();
