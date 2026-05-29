@@ -1,5 +1,15 @@
 #include <libc.h>
 
+#define KEY_UP 'w'
+#define KEY_DOWN 's'
+#define KEY_LEFT 'a'
+#define KEY_RIGHT 'd'
+
+#define MAX_SEG 100
+#define MOVE_TICKS 8
+#define VERTICAL_TICKS 14
+#define FPS_INTERVAL 18
+
 void clean_screen(void) {
   for (int y = 0; y < 25; y++)
     for (int x = 0; x < 80; x++)
@@ -13,16 +23,6 @@ struct shm_game {
   volatile int game_running;
 };
 
-#define KEY_UP 'w'
-#define KEY_DOWN 's'
-#define KEY_LEFT 'a'
-#define KEY_RIGHT 'd'
-
-#define MAX_SEG 100
-#define MOVE_TICKS 8
-#define VERTICAL_TICKS 14
-#define FPS_INTERVAL 18
-
 static struct {
   struct seg {
     int x, y;
@@ -31,7 +31,7 @@ static struct {
   int dir_x, dir_y;
   int food_x, food_y;
   int score;
-  int last_move, last_fps;
+  int last_move, last_now;
   int move_count;
   struct shm_game *gs;
 } g;
@@ -78,12 +78,21 @@ void erase_tail(void) {
 
 void draw_food(void) { putc(g.food_x, g.food_y, '$', 14, 0); }
 
+int latest_ticks = 0;
+
+int getfps() {
+  int current_ticks = gettime();
+  int ret = (current_ticks - latest_ticks) / 18; // 18 tics per sec
+  latest_ticks = current_ticks;
+  return ret;
+}
+
 void draw_stats(void) {
   char buf[20];
   set_color(15, 0);
   gotoxy(0, 0);
   write(1, "FPS:", 4);
-  itoa(g.move_count, buf);
+  itoa(getfps(), buf);
   write(1, buf, strlen(buf));
   write(1, " SCORE:", 7);
   itoa(g.score, buf);
@@ -94,7 +103,8 @@ void draw_stats(void) {
   for (int i = 0; i < 50; i++)
     write(1, " ", 1);
   g.move_count = 0;
-  g.last_fps = gettime();
+
+  g.last_now = gettime();
 }
 
 int rng_seed = 42;
@@ -135,7 +145,6 @@ void game_over(void) {
   itoa(g.score, buf);
   write(1, buf, strlen(buf));
   pstr(28, 14, "Prem R per reiniciar", 15, 0);
-  pstr(24, 15, "o una altra tecla per sortir", 15, 0);
 }
 
 void move_snake(void) {
@@ -202,7 +211,7 @@ void init_game(void) {
   place_food();
 
   g.last_move = gettime();
-  g.last_fps = gettime();
+  g.last_now = gettime();
   draw_stats();
 }
 
@@ -233,13 +242,13 @@ void engine(void) {
 
     int now = gettime();
     int move_ticks = g.dir_x != 0 ? MOVE_TICKS : VERTICAL_TICKS;
-    if (now - g.last_move >= move_ticks) {
+    if (now - g.last_move >= 10 + move_ticks) {
       move_snake();
       if (!g.gs->game_running)
         break;
     }
 
-    if (now - g.last_fps >= FPS_INTERVAL)
+    if (now - g.last_now >= FPS_INTERVAL)
       draw_stats();
   }
 }
@@ -255,7 +264,10 @@ void input_handler(void) {
         g.gs->last_key = 0;
         g.gs->game_running = 1;
         int pid = fork();
-        if (pid == 0) { engine(); exit(); }
+        if (pid == 0) {
+          engine();
+          exit();
+        }
         continue;
       }
       exit();
@@ -276,8 +288,7 @@ int __attribute__((__section__(".text.main"))) main(void) {
 
   clean_screen();
   pstr(20, 11, "WASD per moure's. Menja el $. No moris.", 15, 0);
-  pstr(18, 12,
-       "De veritat he d'explicar-te com jugar Snake?", 15, 0);
+  pstr(18, 12, "De veritat he d'explicar-te com jugar Snake?", 15, 0);
   pstr(24, 14, "Prem qualsevol tecla per comencar", 14, 0);
 
   char buf[1];
