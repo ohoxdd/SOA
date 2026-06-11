@@ -11,4 +11,9 @@
 
 # ZeOSNAKE
 
-> By [Lucas Diaz](github.com/Salipoke) and [Héctor Fernandez de Sevilla](github.com/ohoxdd)
+> By [Lucas Diaz](https://github.com/Salipoke) and [Héctor Fernandez de Sevilla](https://github.com/ohoxdd)
+
+This repository contains all the Advanced Operating Systems (SOA) course, presented at FIB-UPC.
+This lab course consists in implementing a simplified version of a Linux Kernel from scratch, and afterwards, making a videogame using that operating system.
+
+### Lab grade: 10/10
